@@ -51,8 +51,10 @@ contract Vaccination {
     struct Organization {
         string name;
         string location;
+        address[] healthPersons;
         bool approved;
         bool registration;
+        uint256 vaccined;
     }
 
     struct HealthPerson {
@@ -122,6 +124,7 @@ contract Vaccination {
             revert("Vaccine is not yet approved.");
         }
         //Add checks for valid date
+        approvedBatches[name][batch_id].batch_id = batch_id;
         approvedBatches[name][batch_id].defrost_date = defrost_date;
         approvedBatches[name][batch_id].manufacture_expiry = manufacture_expiry;
         approvedBatches[name][batch_id].use_by_date = use_by_date;
@@ -151,13 +154,13 @@ contract Vaccination {
         string memory name,
         uint256 batch_id
     ) public onlyHealthPerson {
-        checkVaccine(name);
+        checkAvailability(name, batch_id, msg.sender);
         checkUserVaccineCompatibility(to, name);
         users[to].vaccine_name = name;
         users[to].batches.push(batch_id);
         users[to].datetime.push(block.timestamp);
         users[to].vaccine_count += 1;
-        approvedOperators[name][batch_id][msg.sender] -= 1;
+        approvedOperators[name][batch_id][healthPersons[msg.sender].org] -= 1;
         changeStatus(to);
     }
 
@@ -205,6 +208,23 @@ contract Vaccination {
         if (!approvedVaccines[name].approved) {
             revert("Vaccine is not approved.");
         }
+    }
+
+    function checkBatch(string memory name, uint256 batch_id) public view {
+        require(approvedBatches[name][batch_id].batch_id > 0, "Invalid batch");
+        // require(
+        //     approvedBatches[name][batch_id].defrost_date < block.timestamp,
+        //     "Must be previously defrosted"
+        // );
+        // require(
+        //     approvedBatches[name][batch_id].manufacture_expiry >
+        //         block.timestamp,
+        //     "Expired"
+        // );
+        // require(
+        //     approvedBatches[name][batch_id].use_by_date > block.timestamp,
+        //     "Must be previously used."
+        // );
     }
 
     function checkOrganization(address org) public view {
@@ -282,6 +302,15 @@ contract Vaccination {
             revert("Healthperson do not belong to the organization.");
         }
         healthPersons[person].approved = true;
+        organizations[msg.sender].healthPersons.push(person);
+    }
+
+    function registerAsHealthPerson(address org) public payable {
+        if (msg.value < REGISTRATION_COST) {
+            revert("Insufficient amount.");
+        }
+        healthPersons[msg.sender].org = org;
+        healthPersons[msg.sender].approved = false;
     }
 
     modifier onlySuperAdmin() {
@@ -295,5 +324,35 @@ contract Vaccination {
     modifier onlyHealthPerson() {
         require(healthPersons[msg.sender].approved, "HealthPerson");
         _;
+    }
+
+    function getHealthPersonOrganization(address healthPerson)
+        public
+        view
+        returns (address)
+    {
+        return (healthPersons[healthPerson].org);
+    }
+
+    function checkAvailability(
+        string memory name,
+        uint256 batch_id,
+        address healthPerson
+    ) public view {
+        checkVaccine(name);
+        checkBatch(name, batch_id);
+        require(
+            approvedOperators[name][batch_id][healthPersons[healthPerson].org] >
+                0,
+            "Insufficient vaccine..."
+        );
+    }
+
+    function getAvailableVaccines(
+        string memory name,
+        uint256 batch,
+        address org
+    ) public view returns (uint256) {
+        return approvedOperators[name][batch][org];
     }
 }
