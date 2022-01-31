@@ -5,6 +5,10 @@ const assert = require("chai").assert;
 const BigNumber = require("bignumber.js");
 // const web3 = require("Web3");
 
+//accounts[0] = admin
+//accounts[9] = organization, Sahid Hospital, Kalanki
+//account[8] = healthperson
+
 contract("Vaccination", (accounts) => {
     let vaccination;
 
@@ -96,15 +100,39 @@ contract("Vaccination", (accounts) => {
             // assert.equal(initialRegistrationStatus, false);
         });
 
-        it("Organization must be approved before being able to recieve.", async () => {
-            // let initialRegistrationStatus = await vaccination.organizations(
-            //     accounts[9]
-            // ).registraion;
+        it("Registering Sahid Hospital", async ()=> {
+
             await vaccination.registerOrganization(
                 "Sahid Hospital",
                 "Kalanki",
                 { from: accounts[9], value: 100 }
             );
+        });
+
+        it("Registering User", async () => {
+                await vaccination.registerIndividual(1999, 0, 'prajwolgyawali', 'imagehash', {from: accounts[1]}
+            );
+                await vaccination.registerIndividual(1999, 0, 'prajwolgyawali', 'imagehash', {from: accounts[2]}
+            );
+            console.log(typeof(accounts[1]))
+            console.log(accounts[1])
+            const user = await vaccination.users(accounts[1])
+            console.log(user)
+        });
+
+        it("Registering User Again", async () => {
+            try {
+                await vaccination.registerIndividual(1999, 0, 'prajwolgyawali', 'imagehash', {from: accounts[1]});
+            } catch (error) {
+                const alreadyRegistered = error.message.search('Already registered.')
+                assert.isAtLeast(alreadyRegistered, 0)
+            }
+        });
+
+        it("Organization must be approved before being able to recieve.", async () => {
+            // let initialRegistrationStatus = await vaccination.organizations(
+            //     accounts[9]
+            // ).registraion;
 
             try {
                 await vaccination.transfer(accounts[9], "vercell", 1, 10);
@@ -187,11 +215,12 @@ contract("Vaccination", (accounts) => {
             await vaccination.approveHealthPerson(accounts[8], {
                 from: accounts[9],
             });
+
         });
     });
 
     describe("Vaccinating", async () => {
-        it("First vaccine", async () => {
+        it("Unapproved health person", async () => {
             // let initialCount = await vaccination.getUserVaccineCount(
             //     accounts[1]
             // );
@@ -203,6 +232,8 @@ contract("Vaccination", (accounts) => {
                 assert.isAtLeast(invalidPerson, 0);
             }
         });
+
+
 
         it("Invalid Vaccine", async () => {
             try {
@@ -228,75 +259,76 @@ contract("Vaccination", (accounts) => {
             }
         });
 
-        it("First Vaccine to account 1", async () => {
-            let status = await vaccination.getVaccineStatusOf(accounts[1]);
-            status = BigNumber(status).toNumber();
-            assert.equal(status, 0);
-            try {
-                await vaccination.vaccinate(accounts[1], "verocell", 1, {
-                    from: accounts[8],
-                });
-            } catch (error) {
-                console.log(error);
-            }
-            status = await vaccination.getVaccineStatusOf(accounts[1]);
-            status = BigNumber(status).toNumber();
-            assert.equal(status, 1);
-        });
-        it("First Vaccine to account 2", async () => {
-            let status = await vaccination.getVaccineStatusOf(accounts[2]);
-            status = BigNumber(status).toNumber();
-            assert.equal(status, 0);
-            try {
-                await vaccination.vaccinate(accounts[2], "verocell", 1, {
-                    from: accounts[8],
-                });
-            } catch (error) {
-                console.log(error.message);
-            }
-            status = await vaccination.getVaccineStatusOf(accounts[2]);
-            status = BigNumber(status).toNumber();
-            assert.equal(status, 1);
-        });
+        // it("First Vaccine to account 1", async () => {
+        //     let status = await vaccination.getVaccineStatusOf(accounts[1]);
+        //     status = BigNumber(status).toNumber();
+        //     assert.equal(status, 0);
+        //     try {
+        //         await vaccination.vaccinate(accounts[1], "verocell", 1, {
+        //             from: accounts[8],
+        //         });
+        //     } catch (error) {
 
-        it("Second Vaccine to account 1", async () => {
-            let status = await vaccination.getVaccineStatusOf(accounts[1]);
-            status = BigNumber(status).toNumber();
-            assert.equal(status, 1);
-            await vaccination.vaccinate(accounts[1], "verocell", 1, {
-                from: accounts[8],
-            });
-            status = await vaccination.getVaccineStatusOf(accounts[1]);
-            status = BigNumber(status).toNumber();
-            assert.equal(status, 2);
-        });
-        it("Third Vaccine to account 1", async () => {
-            let status = await vaccination.getVaccineStatusOf(accounts[1]);
-            status = BigNumber(status).toNumber();
-            assert.equal(status, 2);
-            try {
-                await vaccination.vaccinate(accounts[1], "verocell", 1, {
-                    from: accounts[8],
-                });
-            } catch (error) {
-                const alreadyFull = error.message.search(
-                    "Fully vaccinated already."
-                );
-                assert.isAtLeast(alreadyFull, 0);
-            }
-        });
-        it("First Vaccine to account 4", async () => {
-            try {
-                await vaccination.vaccinate(accounts[4], "verocell", 1, {
-                    from: accounts[8],
-                });
-            } catch (error) {
-                const insufficientVaccine = error.message.search(
-                    "Insufficient vaccine"
-                );
-                assert.isAtLeast(insufficientVaccine, 0);
-            }
-        });
+        //         console.log(error);
+        //     }
+        //     status = await vaccination.getVaccineStatusOf(accounts[1]);
+        //     status = BigNumber(status).toNumber();
+        //     assert.equal(status, 1);
+        // });
+        // it("First Vaccine to account 2", async () => {
+        //     let status = await vaccination.getVaccineStatusOf(accounts[2]);
+        //     status = BigNumber(status).toNumber();
+        //     assert.equal(status, 0);
+        //     try {
+        //         await vaccination.vaccinate(accounts[2], "verocell", 1, {
+        //             from: accounts[8],
+        //         });
+        //     } catch (error) {
+        //         console.log(error.message);
+        //     }
+        //     status = await vaccination.getVaccineStatusOf(accounts[2]);
+        //     status = BigNumber(status).toNumber();
+        //     assert.equal(status, 1);
+        // });
+
+        // it("Second Vaccine to account 1", async () => {
+        //     let status = await vaccination.getVaccineStatusOf(accounts[1]);
+        //     status = BigNumber(status).toNumber();
+        //     assert.equal(status, 1);
+        //     await vaccination.vaccinate(accounts[1], "verocell", 1, {
+        //         from: accounts[8],
+        //     });
+        //     status = await vaccination.getVaccineStatusOf(accounts[1]);
+        //     status = BigNumber(status).toNumber();
+        //     assert.equal(status, 2);
+        // });
+        // it("Third Vaccine to account 1", async () => {
+        //     let status = await vaccination.getVaccineStatusOf(accounts[1]);
+        //     status = BigNumber(status).toNumber();
+        //     assert.equal(status, 2);
+        //     try {
+        //         await vaccination.vaccinate(accounts[1], "verocell", 1, {
+        //             from: accounts[8],
+        //         });
+        //     } catch (error) {
+        //         const alreadyFull = error.message.search(
+        //             "Fully vaccinated already."
+        //         );
+        //         assert.isAtLeast(alreadyFull, 0);
+        //     }
+        // });
+        // it("First Vaccine to account 4", async () => {
+        //     try {
+        //         await vaccination.vaccinate(accounts[4], "verocell", 1, {
+        //             from: accounts[8],
+        //         });
+        //     } catch (error) {
+        //         const insufficientVaccine = error.message.search(
+        //             "Insufficient vaccine"
+        //         );
+        //         assert.isAtLeast(insufficientVaccine, 0);
+        //     }
+        // });
 
         // it("Second vaccine", async () => {
         //     let initialCount = await vaccination.getUserVaccineCount(

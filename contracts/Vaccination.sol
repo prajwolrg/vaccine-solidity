@@ -15,9 +15,10 @@ contract Vaccination {
         FEMALE,
         UNSPECIFIED
     }
+
     struct Vaccine {
         string name;
-        uint256 batchNo;
+        uint256 batch_no;
         uint256 vaccination_datetime;
         // uint256 serialNo;
     }
@@ -27,30 +28,35 @@ contract Vaccination {
         uint256 defrost_date;
         uint256 manufacture_expiry;
         uint256 use_by_date;
+        string ipfs_hash;
     }
 
     struct VaccineDetails {
         string name;
         // string platform;
         // string route;
-        // string details;
+        string ipfs_hash;
         uint256[] schedule;
         uint256[] batches;
         bool approved;
     }
 
     struct User {
-        // uint8 age;
-        // Gender gender;
+        uint256 year_of_birth;
+        Gender gender;
+        string namehash;
+        string imagehash;
         string vaccine_name;
         uint256[] batches;
         uint256[] datetime;
         uint256 vaccine_count;
+        bool registered;
     }
 
     struct Organization {
         string name;
         string location;
+        string ipfs_hash;
         address[] healthPersons;
         bool approved;
         bool registration;
@@ -105,6 +111,7 @@ contract Vaccination {
 
     function approveVaccine(string memory name, uint256[] memory schedule)
         public
+        onlySuperAdmin
     {
         approvedVaccines[name].name = name;
         approvedVaccines[name].schedule = schedule;
@@ -154,6 +161,7 @@ contract Vaccination {
         string memory name,
         uint256 batch_id
     ) public onlyHealthPerson {
+        checkUserRegistration(to);
         checkAvailability(name, batch_id, msg.sender);
         checkUserVaccineCompatibility(to, name);
         users[to].vaccine_name = name;
@@ -210,21 +218,25 @@ contract Vaccination {
         }
     }
 
+    function checkUserRegistration(address user) private view{
+        require(users[user].registered == true, "Unregistered user");
+    }
+
     function checkBatch(string memory name, uint256 batch_id) public view {
         require(approvedBatches[name][batch_id].batch_id > 0, "Invalid batch");
-        // require(
-        //     approvedBatches[name][batch_id].defrost_date < block.timestamp,
-        //     "Must be previously defrosted"
-        // );
-        // require(
-        //     approvedBatches[name][batch_id].manufacture_expiry >
-        //         block.timestamp,
-        //     "Expired"
-        // );
-        // require(
-        //     approvedBatches[name][batch_id].use_by_date > block.timestamp,
-        //     "Must be previously used."
-        // );
+        require(
+            approvedBatches[name][batch_id].defrost_date < block.timestamp,
+            "Must be previously defrosted"
+        );
+        require(
+            approvedBatches[name][batch_id].manufacture_expiry >
+                block.timestamp,
+            "Expired"
+        );
+        require(
+            approvedBatches[name][batch_id].use_by_date > block.timestamp,
+            "Must be used prior to use by date."
+        );
     }
 
     function checkOrganization(address org) public view {
@@ -274,6 +286,15 @@ contract Vaccination {
         }
     }
 
+    function registerIndividual(uint256 year_of_birth, Gender gender, string memory namehash, string memory imagehash) public {
+        require(users[msg.sender].registered == false, "Already registered.");
+        users[msg.sender].year_of_birth = year_of_birth;
+        users[msg.sender].gender = gender;
+        users[msg.sender].namehash = namehash;
+        users[msg.sender].imagehash = imagehash;
+        users[msg.sender].registered = true;
+    }
+
     function registerOrganization(string memory name, string memory location)
         public
         payable
@@ -305,7 +326,7 @@ contract Vaccination {
         organizations[msg.sender].healthPersons.push(person);
     }
 
-    function registerAsHealthPerson(address org) public payable {
+    function registerAsHealthPerson(address org) public payable{
         if (msg.value < REGISTRATION_COST) {
             revert("Insufficient amount.");
         }
