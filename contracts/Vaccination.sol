@@ -79,9 +79,6 @@ contract Vaccination {
     mapping(address => Organization) public organizations;
     mapping(address => HealthPerson) public healthPersons;
 
-    mapping(address => bool) adminStatus;
-    address[] public admins;
-
     address public superAdmin;
 
     address[] public organizationsList;
@@ -91,22 +88,20 @@ contract Vaccination {
     uint256 public fullyVaccinated;
 
     //uint256 public total_vaccines;
+    event ApproveVaccine(string indexed vaccine_name);
+    event AddBatch(string indexed vaccine_name, uint256 indexed batch_no);
+    event ApproveOrganization(string indexed org_name);
+    event TransferVaccine(address indexed to, string indexed vaccine_name, uint256 batch_no);
+
+    event RegisterOrganization(string indexed org_name);
+    event ApproveHealthPerson(address indexed from, address indexed to);
+
+    event RegisterHealthPerson(address indexed _from);
+
+    event RegisterIndividual(address indexed _from);
 
     constructor() {
         superAdmin = msg.sender;
-        adminStatus[superAdmin] = true;
-    }
-
-    function getApprovedVaccinesLength() public view returns (uint256) {
-        return approvedVaccineNames.length;
-    }
-
-    function getVaccineApprovalStatus(string memory name)
-        public
-        view
-        returns (bool)
-    {
-        return approvedVaccines[name].approved;
     }
 
     function approveVaccine(string memory name, uint256[] memory schedule)
@@ -117,6 +112,7 @@ contract Vaccination {
         approvedVaccines[name].schedule = schedule;
         approvedVaccineNames.push(name);
         approvedVaccines[name].approved = true;
+        emit ApproveVaccine(name);
     }
 
     function addBatch(
@@ -126,11 +122,15 @@ contract Vaccination {
         uint256 manufacture_expiry,
         uint256 use_by_date,
         uint256 units
-    ) public {
-        if (!approvedVaccines[name].approved) {
-            revert("Vaccine is not yet approved.");
-        }
-        //Add checks for valid date
+    ) public onlySuperAdmin{
+        require(batch_id > 0, "Invalid batch");
+        require(approvedVaccines[name].approved, "Vaccine is not approved.");
+
+        //Check dates
+        require( defrost_date < block.timestamp, "Must be previously defrosted");
+        require( manufacture_expiry > block.timestamp, "Expired");
+        require( use_by_date > block.timestamp, "Must be used prior to use by date.");
+
         approvedBatches[name][batch_id].batch_id = batch_id;
         approvedBatches[name][batch_id].defrost_date = defrost_date;
         approvedBatches[name][batch_id].manufacture_expiry = manufacture_expiry;
@@ -138,7 +138,34 @@ contract Vaccination {
         approvedVaccines[name].batches.push(batch_id);
         approvedOperators[name][batch_id][msg.sender] = units;
         users[msg.sender].vaccine_count = units;
+        emit AddBatch(name, batch_id);
     }
+
+    function registerOrganization(string memory name, string memory location)
+        public
+        payable
+    {
+        if (msg.value < REGISTRATION_COST) {
+            revert("Insufficient amount.");
+        }
+        organizations[msg.sender].name = name;
+        organizations[msg.sender].location = location;
+        organizations[msg.sender].registration = true;
+        organizationsList.push(msg.sender);
+        emit RegisterOrganization(name);
+    }
+
+
+    function approveOrganization(address org) public onlySuperAdmin {
+        if (!organizations[org].registration) {
+            revert("Organization must first register to approve.");
+        }
+        if (organizations[org].approved) {
+            revert("Organization is already approved.");
+        }
+        organizations[org].approved = true;
+    }
+
 
     function transfer(
         address to,
@@ -148,13 +175,41 @@ contract Vaccination {
     ) public onlySuperAdmin {
         checkOrganization(to);
         checkVaccine(name);
+        checkBatch(name, batch_id);
 
         if (approvedOperators[name][batch_id][msg.sender] < units) {
             revert("Insufficient vaccines.");
         }
         approvedOperators[name][batch_id][msg.sender] -= units;
         approvedOperators[name][batch_id][to] += units;
+        emit TransferVaccine(to, name, batch_id);
     }
+
+    function registerIndividual(uint256 year_of_birth, Gender gender, string memory namehash, string memory imagehash) public {
+        require(users[msg.sender].registered == false, "Already registered.");
+        users[msg.sender].year_of_birth = year_of_birth;
+        users[msg.sender].gender = gender;
+        users[msg.sender].namehash = namehash;
+        users[msg.sender].imagehash = imagehash;
+        users[msg.sender].registered = true;
+        emit RegisterIndividual(msg.sender);
+    }
+
+    function registerHealthPerson(address org_name) public {
+        require(organizations[org_name].registration == true, "Organization must be registered.");
+        healthPersons[msg.sender].org = org_name;
+        organizations[msg.sender].healthPersons.push(msg.sender);
+        emit RegisterHealthPerson(msg.sender);
+    }
+
+    function approveHealthPerson(address person) public onlyOrganization {
+        if (healthPersons[person].org != msg.sender) {
+            revert("Healthperson do not belong to the organization.");
+        }
+        healthPersons[person].approved = true;
+    }
+
+
 
     function vaccinate(
         address to,
@@ -172,52 +227,7 @@ contract Vaccination {
         changeStatus(to);
     }
 
-    function getUserVaccineCount(address user) public view returns (uint256) {
-        uint256 count = users[user].vaccine_count;
-        return count;
-    }
-
-    function getRequiredVaccineCount(string memory name)
-        public
-        view
-        returns (uint256)
-    {
-        return approvedVaccines[name].schedule.length;
-    }
-
-    function getTotalOrganization() public view returns (uint256) {
-        return organizationsList.length;
-    }
-
-    function getVaccineStatusOf(address user)
-        public
-        view
-        returns (VaccineStatus status)
-    {
-        uint256 user_vaccineCount = users[user].vaccine_count;
-        uint256 required_vaccineCount = approvedVaccines[
-            users[user].vaccine_name
-        ]
-        .schedule
-        .length;
-
-        if (user_vaccineCount == 0) {
-            return VaccineStatus.UNVACCINATED;
-        }
-        if (user_vaccineCount < required_vaccineCount) {
-            return VaccineStatus.PARTIALLY_VACCINATED;
-        }
-        if (user_vaccineCount == required_vaccineCount) {
-            return VaccineStatus.FULLY_VACCINATED;
-        }
-    }
-
-    function checkVaccine(string memory name) private view {
-        if (!approvedVaccines[name].approved) {
-            revert("Vaccine is not approved.");
-        }
-    }
-
+    //Check Methods
     function checkUserRegistration(address user) private view{
         require(users[user].registered == true, "Unregistered user");
     }
@@ -248,11 +258,17 @@ contract Vaccination {
         }
     }
 
+    function checkVaccine(string memory name) public view {
+        if (!approvedVaccines[name].approved) {
+            revert("Vaccine not approved");
+        }
+    }
+
     function checkUserVaccineCompatibility(address user, string memory name)
         private
         view
     {
-        checkVaccine(name);
+        require (approvedVaccines[name].approved == true, "Vaccine is not approved.");
         bytes memory _user_recieved_vaccine = bytes(users[user].vaccine_name);
         bytes memory _user_recieving_vaccine = bytes(name);
 
@@ -276,6 +292,56 @@ contract Vaccination {
         }
     }
 
+
+    //Read Only Methods
+    function getUserVaccineCount(address user) public view returns (uint256) {
+        uint256 count = users[user].vaccine_count;
+        return count;
+    }
+
+    function getRequiredVaccineCount(string memory name)
+        public
+        view
+        returns (uint256)
+    {
+        return approvedVaccines[name].schedule.length;
+    }
+
+    function getTotalOrganization() public view returns (uint256) {
+        return organizationsList.length;
+    }
+
+    function getAllOrganizations() public view returns (address [] memory) {
+        return organizationsList;
+    }
+
+    function getAllHealthPersons(address org) public view returns (address [] memory) {
+        return organizations[org].healthPersons;
+    }
+
+    function getVaccineStatusOf(address user)
+        public
+        view
+        returns (VaccineStatus status)
+    {
+        uint256 user_vaccineCount = users[user].vaccine_count;
+        uint256 required_vaccineCount = approvedVaccines[
+            users[user].vaccine_name
+        ]
+        .schedule
+        .length;
+
+        if (user_vaccineCount == 0) {
+            return VaccineStatus.UNVACCINATED;
+        }
+        if (user_vaccineCount < required_vaccineCount) {
+            return VaccineStatus.PARTIALLY_VACCINATED;
+        }
+        if (user_vaccineCount == required_vaccineCount) {
+            return VaccineStatus.FULLY_VACCINATED;
+        }
+    }
+
     function changeStatus(address user) private {
         VaccineStatus status = getVaccineStatusOf(user);
         if (status == VaccineStatus.FULLY_VACCINATED) {
@@ -286,54 +352,9 @@ contract Vaccination {
         }
     }
 
-    function registerIndividual(uint256 year_of_birth, Gender gender, string memory namehash, string memory imagehash) public {
-        require(users[msg.sender].registered == false, "Already registered.");
-        users[msg.sender].year_of_birth = year_of_birth;
-        users[msg.sender].gender = gender;
-        users[msg.sender].namehash = namehash;
-        users[msg.sender].imagehash = imagehash;
-        users[msg.sender].registered = true;
-    }
 
-    function registerOrganization(string memory name, string memory location)
-        public
-        payable
-    {
-        if (msg.value < REGISTRATION_COST) {
-            revert("Insufficient amount.");
-        }
-        organizations[msg.sender].name = name;
-        organizations[msg.sender].location = location;
-        organizations[msg.sender].registration = true;
-    }
 
-    function approveOrganization(address org) public onlySuperAdmin {
-        if (!organizations[org].registration) {
-            revert("Organization must first register to approve.");
-        }
-        if (organizations[org].approved) {
-            revert("Organization is already approved.");
-        }
-        organizations[org].approved = true;
-        organizationsList.push(org);
-    }
-
-    function approveHealthPerson(address person) public onlyOrganization {
-        if (healthPersons[person].org != msg.sender) {
-            revert("Healthperson do not belong to the organization.");
-        }
-        healthPersons[person].approved = true;
-        organizations[msg.sender].healthPersons.push(person);
-    }
-
-    function registerAsHealthPerson(address org) public payable{
-        if (msg.value < REGISTRATION_COST) {
-            revert("Insufficient amount.");
-        }
-        healthPersons[msg.sender].org = org;
-        healthPersons[msg.sender].approved = false;
-    }
-
+    //Modifiers
     modifier onlySuperAdmin() {
         require(msg.sender == superAdmin, "superAdmin");
         _;
@@ -360,7 +381,7 @@ contract Vaccination {
         uint256 batch_id,
         address healthPerson
     ) public view {
-        checkVaccine(name);
+        require(approvedVaccines[name].approved == true, "Vaccine not approved.");
         checkBatch(name, batch_id);
         require(
             approvedOperators[name][batch_id][healthPersons[healthPerson].org] >
@@ -375,5 +396,21 @@ contract Vaccination {
         address org
     ) public view returns (uint256) {
         return approvedOperators[name][batch][org];
+    }
+
+    function getApprovedVaccinesLength() public view returns (uint256) {
+        return approvedVaccineNames.length;
+    }
+
+    function getVaccineApprovalStatus(string memory name)
+        public
+        view
+        returns (bool)
+    {
+        return approvedVaccines[name].approved;
+    }
+
+    function now() public view returns (uint256) {
+        return block.timestamp;
     }
 }
