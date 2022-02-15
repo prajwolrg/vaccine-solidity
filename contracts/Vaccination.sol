@@ -416,6 +416,7 @@ contract Vaccination {
     }
 
     function now() public view returns (uint256) {
+
         return block.timestamp;
     }
 }
