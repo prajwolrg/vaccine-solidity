@@ -91,7 +91,11 @@ contract Vaccination {
     event ApproveVaccine(string indexed vaccine_name);
     event AddBatch(string indexed vaccine_name, uint256 indexed batch_no);
     event ApproveOrganization(string indexed org_name);
-    event TransferVaccine(address indexed to, string indexed vaccine_name, uint256 batch_no);
+    event TransferVaccine(
+        address indexed to,
+        string indexed vaccine_name,
+        uint256 batch_no
+    );
 
     event RegisterOrganization(string indexed org_name);
     event ApproveHealthPerson(address indexed from, address indexed to);
@@ -122,14 +126,17 @@ contract Vaccination {
         uint256 manufacture_expiry,
         uint256 use_by_date,
         uint256 units
-    ) public onlySuperAdmin{
+    ) public onlySuperAdmin {
         require(batch_id > 0, "Invalid batch");
         require(approvedVaccines[name].approved, "Vaccine is not approved.");
 
         //Check dates
-        require( defrost_date < block.timestamp, "Must be previously defrosted");
-        require( manufacture_expiry > block.timestamp, "Expired");
-        require( use_by_date > block.timestamp, "Must be used prior to use by date.");
+        require(defrost_date < block.timestamp, "Must be previously defrosted");
+        require(manufacture_expiry > block.timestamp, "Expired");
+        require(
+            use_by_date > block.timestamp,
+            "Must be used prior to use by date."
+        );
 
         approvedBatches[name][batch_id].batch_id = batch_id;
         approvedBatches[name][batch_id].defrost_date = defrost_date;
@@ -155,7 +162,6 @@ contract Vaccination {
         emit RegisterOrganization(name);
     }
 
-
     function approveOrganization(address org) public onlySuperAdmin {
         if (!organizations[org].registration) {
             revert("Organization must first register to approve.");
@@ -165,7 +171,6 @@ contract Vaccination {
         }
         organizations[org].approved = true;
     }
-
 
     function transfer(
         address to,
@@ -185,7 +190,12 @@ contract Vaccination {
         emit TransferVaccine(to, name, batch_id);
     }
 
-    function registerIndividual(uint256 year_of_birth, Gender gender, string memory namehash, string memory imagehash) public {
+    function registerIndividual(
+        uint256 year_of_birth,
+        Gender gender,
+        string memory namehash,
+        string memory imagehash
+    ) public {
         require(users[msg.sender].registered == false, "Already registered.");
         users[msg.sender].year_of_birth = year_of_birth;
         users[msg.sender].gender = gender;
@@ -195,21 +205,11 @@ contract Vaccination {
         emit RegisterIndividual(msg.sender);
     }
 
-    function registerHealthPerson(address org_name) public {
-        require(organizations[org_name].registration == true, "Organization must be registered.");
-        healthPersons[msg.sender].org = org_name;
-        organizations[msg.sender].healthPersons.push(msg.sender);
-        emit RegisterHealthPerson(msg.sender);
-    }
-
     function approveHealthPerson(address person) public onlyOrganization {
-        if (healthPersons[person].org != msg.sender) {
-            revert("Healthperson do not belong to the organization.");
-        }
+        healthPersons[person].org = msg.sender;
         healthPersons[person].approved = true;
+        organizations[msg.sender].healthPersons.push(person);
     }
-
-
 
     function vaccinate(
         address to,
@@ -228,7 +228,7 @@ contract Vaccination {
     }
 
     //Check Methods
-    function checkUserRegistration(address user) private view{
+    function checkUserRegistration(address user) private view {
         require(users[user].registered == true, "Unregistered user");
     }
 
@@ -268,7 +268,10 @@ contract Vaccination {
         private
         view
     {
-        require (approvedVaccines[name].approved == true, "Vaccine is not approved.");
+        require(
+            approvedVaccines[name].approved == true,
+            "Vaccine is not approved."
+        );
         bytes memory _user_recieved_vaccine = bytes(users[user].vaccine_name);
         bytes memory _user_recieving_vaccine = bytes(name);
 
@@ -292,7 +295,6 @@ contract Vaccination {
         }
     }
 
-
     //Read Only Methods
     function getUserVaccineCount(address user) public view returns (uint256) {
         uint256 count = users[user].vaccine_count;
@@ -311,11 +313,15 @@ contract Vaccination {
         return organizationsList.length;
     }
 
-    function getAllOrganizations() public view returns (address [] memory) {
+    function getAllOrganizations() public view returns (address[] memory) {
         return organizationsList;
     }
 
-    function getAllHealthPersons(address org) public view returns (address [] memory) {
+    function getAllHealthPersons(address org)
+        public
+        view
+        returns (address[] memory)
+    {
         return organizations[org].healthPersons;
     }
 
@@ -327,9 +333,7 @@ contract Vaccination {
         uint256 user_vaccineCount = users[user].vaccine_count;
         uint256 required_vaccineCount = approvedVaccines[
             users[user].vaccine_name
-        ]
-        .schedule
-        .length;
+        ].schedule.length;
 
         if (user_vaccineCount == 0) {
             return VaccineStatus.UNVACCINATED;
@@ -351,8 +355,6 @@ contract Vaccination {
             partiallyVaccinated += 1;
         }
     }
-
-
 
     //Modifiers
     modifier onlySuperAdmin() {
@@ -381,7 +383,10 @@ contract Vaccination {
         uint256 batch_id,
         address healthPerson
     ) public view {
-        require(approvedVaccines[name].approved == true, "Vaccine not approved.");
+        require(
+            approvedVaccines[name].approved == true,
+            "Vaccine not approved."
+        );
         checkBatch(name, batch_id);
         require(
             approvedOperators[name][batch_id][healthPersons[healthPerson].org] >
