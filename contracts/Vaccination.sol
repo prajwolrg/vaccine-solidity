@@ -51,6 +51,7 @@ contract Vaccination {
         uint256[] datetime;
         uint256 vaccine_count;
         bool registered;
+        HealthPerson hp;
     }
 
     struct Organization {
@@ -58,6 +59,7 @@ contract Vaccination {
         string location;
         string ipfs_hash;
         address[] healthPersons;
+        HealthPerson[] hps;
         bool approved;
         bool registration;
         uint256 vaccined;
@@ -65,6 +67,7 @@ contract Vaccination {
 
     struct HealthPerson {
         address org;
+        bool registered;
         bool approved;
     }
 
@@ -160,16 +163,6 @@ contract Vaccination {
         organizations[msg.sender].registration = true;
         organizationsList.push(msg.sender);
         emit RegisterOrganization(name);
-    }
-
-    function approveOrganization(address org) public onlySuperAdmin {
-        if (!organizations[org].registration) {
-            revert("Organization must first register to approve.");
-        }
-        if (organizations[org].approved) {
-            revert("Organization is already approved.");
-        }
-        organizations[org].approved = true;
     }
 
     function transfer(
