@@ -433,7 +433,7 @@ contract Vaccination {
         return block.timestamp;
     }
 
-    function getRole(address user) public returns (Role) {
+    function getRole(address user) public view returns (Role) {
         return roles[user];
     }
 }

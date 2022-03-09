@@ -67,16 +67,16 @@ module.exports = {
             skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
         },
         azure: {
-            host: "http://20.25.84.147", // Localhost (default: none)
+            host: "20.124.248.232", // Localhost (default: none)
             port: 8545, // Standard Ethereum port (default: none)
             network_id: "*", // Any network (default: none)
         },
         // Useful for private networks
-        // private: {
-        // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),
-        // network_id: 2111,   // This network is yours, in the cloud.
-        // production: true    // Treats this network as if it was a public net. (default: false)
-        // }
+        private: {
+            provider: () => new HDWalletProvider(mnemonic, `http://20.124.248.232:8545`),
+            network_id: "*",   // This network is yours, in the cloud.
+            // production: true    // Treats this network as if it was a public net. (default: false)
+        }
     },
 
     // Set default mocha options here, use special reporters etc.
