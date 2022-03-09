@@ -16,6 +16,13 @@ contract Vaccination {
         UNSPECIFIED
     }
 
+    enum Role {
+        GOVERNMENT,
+        ORGANIZATION,
+        HEALTHPERSON,
+        USER
+    }
+
     struct Vaccine {
         string name;
         uint256 batch_no;
@@ -68,6 +75,8 @@ contract Vaccination {
         bool approved;
     }
 
+    mapping (address => Role) public roles;
+
     mapping(string => VaccineDetails) public approvedVaccines;
     mapping(string => mapping(uint256 => BatchDetails)) public approvedBatches;
     mapping(string => mapping(uint256 => mapping(address => uint256)))
@@ -98,7 +107,7 @@ contract Vaccination {
     );
 
     event RegisterOrganization(string indexed org_name);
-    event ApproveHealthPerson(address indexed from, address indexed to);
+    event ApproveHealthPerson(address indexed org, address indexed hp);
 
     event RegisterHealthPerson(address indexed _from);
 
@@ -106,6 +115,7 @@ contract Vaccination {
 
     constructor() {
         superAdmin = msg.sender;
+        roles[msg.sender] = Role.GOVERNMENT;
     }
 
     function approveVaccine(string memory name, uint256[] memory schedule)
@@ -159,6 +169,7 @@ contract Vaccination {
         organizations[msg.sender].location = location;
         organizations[msg.sender].registration = true;
         organizationsList.push(msg.sender);
+        roles[msg.sender] = Role.ORGANIZATION;
         emit RegisterOrganization(name);
     }
 
@@ -202,13 +213,16 @@ contract Vaccination {
         users[msg.sender].namehash = namehash;
         users[msg.sender].imagehash = imagehash;
         users[msg.sender].registered = true;
+        roles[msg.sender] = Role.USER;
         emit RegisterIndividual(msg.sender);
     }
 
     function approveHealthPerson(address person) public onlyOrganization {
         healthPersons[person].org = msg.sender;
         healthPersons[person].approved = true;
+        roles[person] = Role.HEALTHPERSON;
         organizations[msg.sender].healthPersons.push(person);
+        emit ApproveHealthPerson(msg.sender, person);
     }
 
     function vaccinate(
@@ -417,5 +431,9 @@ contract Vaccination {
 
     function now() public view returns (uint256) {
         return block.timestamp;
+    }
+
+    function getRole(address user) public returns (Role) {
+        return roles[user];
     }
 }
