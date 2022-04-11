@@ -60,7 +60,7 @@ module.exports = async function (deployer, network, accounts) {
 
     // Add users
     for (i = 0; i < userAccounts.length; i++) {
-        console.log(`Adding user ${userAccounts[i].name}`)
+        console.log(`Adding user ${userAccounts[i].name}: ${accounts[6+i]}`)
         await vaccination.registerIndividual(
             userAccounts[i]['yearOfBirth'],
             userAccounts[i]['gender'],
