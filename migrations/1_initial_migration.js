@@ -1,6 +1,9 @@
 const fs = require('fs');
 const Vaccination = artifacts.require("Vaccination");
-const ethers = require('ethers')
+// const ethers = require('ethers')
+
+const { ethers, providers, BigNumber } = require("ethers");
+const axios = require('axios');
 
 userAccounts = [
     {
@@ -42,8 +45,12 @@ module.exports = async function (deployer, network, accounts) {
     console.log(`Network: ${network}`)
     console.log(`Accounts: ${accounts}`)
 
+    await checkUser(accounts[6])
+
     await deployer.deploy(Vaccination);
     const vaccination = await Vaccination.deployed()
+    console.log('Adding data to contractAddresses')
+    await addContractAddresses(Vaccination.address)
     // console.log(vaccination)
     // console.log(typeof(vaccination))
 
@@ -60,13 +67,17 @@ module.exports = async function (deployer, network, accounts) {
 
     // Add users
     for (i = 0; i < userAccounts.length; i++) {
-        console.log(`Adding user ${userAccounts[i].name}: ${accounts[6+i]}`)
+        console.log(`Adding user ${userAccounts[i].name}: ${accounts[6 + i]}`)
         await vaccination.registerIndividual(
             userAccounts[i]['yearOfBirth'],
             userAccounts[i]['gender'],
             ethers.utils.id(userAccounts[i]['name']),
             userAccounts[i]['ipfs_hash'],
             { from: accounts[6 + i] })
+
+        let user = await vaccination.users(accounts[6 + i])
+        console.log(user)
+        await checkUser(accounts[6 + i])
     }
 
     //Add vaccines
@@ -92,6 +103,10 @@ module.exports = async function (deployer, network, accounts) {
         console.log('Adding data to contractAddresses')
         await addContractAddresses(Vaccination.address)
     }
+
+
+
+
 }
 
 const addContractAddresses = async (contractAddress) => {
@@ -117,3 +132,53 @@ const addContractAddresses = async (contractAddress) => {
     await fs.writeFileSync('contractAddresses.json', JSON.stringify(alldata))
 }
 
+const checkUser = async (userAddress) => {
+      const provider = new providers.JsonRpcProvider('http://20.124.248.232:8545')
+    // const provider = new providers.JsonRpcProvider('http://127.0.0.1:8545')
+
+    // const contractAddress = '0x6C232FEDd5A2Fb217deea87D904cf77Cf4d84492'
+
+    //   let response = await axios.get('https://raw.githubusercontent.com/prajwolrg/vaccine-solidity/main/build/contracts/Vaccination.json')
+    let jsonAbi = await fs.readFileSync('./build/contracts/Vaccination.json')
+    jsonAbi = jsonAbi.toString()
+    jsonAbi = JSON.parse(jsonAbi)
+
+    let response = await fs.readFileSync('contractAddresses.json')
+    response = response.toString()
+    response = JSON.parse(response)
+    const contractAddress = response[response.length - 1].contracts['Vaccination']
+    console.log(contractAddress)
+
+    const contract = new ethers.Contract(
+        contractAddress,
+        JSON.stringify(jsonAbi["abi"]),
+        provider
+    );
+
+    const userDetails = await contract.users(userAddress)
+    console.log(jsUser(userDetails))
+}
+
+const Gender = ['Male', 'Female', 'Unspecified']
+
+const jsUser = (solUser) => {
+	let year_of_birth = BigNumber.from(solUser.year_of_birth)
+	year_of_birth = year_of_birth.toNumber()
+
+	let gender = Gender[solUser.gender]
+
+	let vaccine_count = BigNumber.from(solUser.vaccine_count)
+	vaccine_count = vaccine_count.toNumber()
+
+	return {
+		yearOfBirth:  year_of_birth,
+		gender: gender,
+		namehash: solUser.namehash,
+		imagehash:solUser.imagehash,
+		vaccine_name: solUser.vaccine_name,
+		batches: solUser.batches,
+		dateTime: solUser.datetime,
+		vaccine_count: vaccine_count,
+		registered: solUser.registered
+	}
+}
