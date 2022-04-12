@@ -36,7 +36,7 @@ vaccines = [
     {
         "name": "Verocell",
         "schedule": [0, 21],
-        "batches": [1121, 1131]
+        "batches": [1141, 1151]
     }
 ]
 
