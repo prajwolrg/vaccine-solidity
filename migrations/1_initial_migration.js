@@ -44,8 +44,8 @@ organizations = [
     {
         'name': 'Grande International Hospital',
         'url': 'https://www.grandehospital.com/',
-        'logo_hash': 'ipfs_hash',
-        'document_hash': 'https://www.grandehospital.com/',
+        'logo_hash': 'bafybeib3toxyr6lmcdlzek2is5idtzlrfcheilby3ls64vkqg3actwoora',
+        'document_hash': 'bafybeigxzmvpldldmag5goksedjlfgb62yclqjzv5oix3vkhv2mhwmhq4q',
         'location': '27.753094359189657, 85.3258460820991',
         'phone': '+977-1-5159266,',
         'email': 'info@grandehospital.com',
@@ -53,8 +53,8 @@ organizations = [
     {
         'name': 'Norvic International Hospital',
         'url': 'https://www.norvichospital.com/',
-        'logo_hash': 'https://www.norvichospital.com/',
-        'document_hash': 'ipfs_hash',
+        'logo_hash': 'bafybeieit4ymr72soz7ceaiatfsnutefl5sroqanwgnlpzlmugbliegd5y',
+        'document_hash': 'bafybeifgmtjxhbgc4fpbuclhw55hp5q6zv2zxuutune27cf2vbhnvctlai',
         'location': '27.690222585866792, 85.31913930908078',
         'email': 'info@norvichospital.com',
         'phone': '+977 1-5970032',
@@ -62,8 +62,8 @@ organizations = [
     {
         'name': 'Nepal Mediciti Hospital',
         'url': 'https://www.nepalmediciti.com/',
-        'logo_hash': 'https://www.nepalmediciti.com/',
-        'document_hash': 'ipfs_hash',
+        'logo_hash': 'bafybeiasjbr55o65vh43if7swweaflbnclk3fei4g7idpzyqn27t7ph2dm',
+        'document_hash': 'bafybeibsupaycibuy3i2qgzxbvmzvkgi6ur23mgjc5ecja27g7de57wmni',
         'location': '27.66259787526539, 85.30307300001515',
         'email': 'info@nepalmediciti.com',
         'phone': '+977-1-4217766',
