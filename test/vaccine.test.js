@@ -32,9 +32,14 @@ contract("Vaccination", (accounts) => {
         });
 
         it("Registering Organization - Sahid Hospital", async () => {
-            await vaccination.registerOrganization(
+            const txresult = await vaccination.registerOrganization(
                 "Sahid Hospital",
-                "Kalanki",
+                "url",
+                "document_hash",
+                "logo_hash",
+                "location",
+                'Phone',
+                'email',
                 { from: accounts[9], value: 100 }
             );
         });
@@ -46,15 +51,15 @@ contract("Vaccination", (accounts) => {
             );
         });
 
-        it("Organization must be approved before Health Person can register to that organization", async () => {
-            try {
-                await vaccination.registerHealthPerson(accounts[9], { from: accounts[8] })
-            } catch (error) {
-                const invalidOrganization = error.message.search("Organization must be registered.")
-                console.log(error.message)
-                assert.isAtLeast(invalidOrganization, 0)
-            }
-        });
+        // it("Organization must be approved before Health Person can register to that organization", async () => {
+        //     try {
+        //         await vaccination.registerHealthPerson(accounts[9], { from: accounts[8] })
+        //     } catch (error) {
+        //         const invalidOrganization = error.message.search("Organization must be registered.")
+        //         console.log(error.message)
+        //         assert.isAtLeast(invalidOrganization, 0)
+        //     }
+        // });
 
         it("Approving organization - Sahid Hospital", async () => {
             await vaccination.approveOrganization(accounts[9]);

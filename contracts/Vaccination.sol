@@ -29,6 +29,8 @@ contract Vaccination {
         string name;
         uint256 batch_no;
         uint256 vaccination_datetime;
+        address healthPerson;
+        address organization;
         // uint256 serialNo;
     }
 
@@ -38,6 +40,7 @@ contract Vaccination {
         uint256 manufacture_expiry;
         uint256 use_by_date;
         string ipfs_hash;
+        uint256 vaccined;
     }
 
     struct VaccineDetails {
@@ -48,6 +51,7 @@ contract Vaccination {
         uint256[] schedule;
         uint256[] batches;
         bool approved;
+        uint256 vaccined;
     }
 
     struct User {
@@ -55,9 +59,12 @@ contract Vaccination {
         Gender gender;
         string namehash;
         string imagehash;
-        string vaccine_name;
-        uint256[] batches;
-        uint256[] datetime;
+        Vaccine[] vaccines;
+        // string vaccine_name;
+        // uint256[] batches;
+        // uint256[] datetime;
+        // address[] healthPersons;
+        // address[] organizations;
         uint256 vaccine_count;
         bool registered;
     }
@@ -118,6 +125,8 @@ contract Vaccination {
     event RegisterHealthPerson(address indexed _from);
 
     event RegisterIndividual(address indexed _from);
+    
+    event Vaccinate(address indexed to, address indexed from, string indexed vaccine, uint256 batch_id);
 
     constructor() {
         superAdmin = msg.sender;
@@ -235,6 +244,7 @@ contract Vaccination {
     }
 
     function approveHealthPerson(address person) public onlyOrganization {
+        require(!healthPersons[person].approved, 'Already approved in another organization.');
         healthPersons[person].org = msg.sender;
         healthPersons[person].approved = true;
         roles[person] = Role.HEALTHPERSON;
@@ -250,12 +260,27 @@ contract Vaccination {
         checkUserRegistration(to);
         checkAvailability(name, batch_id, msg.sender);
         checkUserVaccineCompatibility(to, name);
-        users[to].vaccine_name = name;
-        users[to].batches.push(batch_id);
-        users[to].datetime.push(block.timestamp);
+
+        address orgAddress = healthPersons[msg.sender].org;
+        Vaccine memory newVaccine = Vaccine(name, batch_id, block.timestamp, msg.sender, orgAddress);
+        users[to].vaccines.push(newVaccine);
+
+
+        // users[to].vaccine_name = name;
+        // users[to].batches.push(batch_id);
+        // users[to].datetime.push(block.timestamp);
+        // users[to].healthPersons.push(msg.sender);
+        // users[to].organizations.push(orgAddress);
         users[to].vaccine_count += 1;
-        approvedOperators[name][batch_id][healthPersons[msg.sender].org] -= 1;
+        approvedOperators[name][batch_id][orgAddress] -= 1;
+
+        organizations[orgAddress].vaccined += 1;
+        approvedBatches[name][batch_id].vaccined += 1;
+        approvedVaccines[name].vaccined += 1;
+
         changeStatus(to);
+
+        emit Vaccinate(to, msg.sender, name, batch_id);
     }
 
     //Check Methods
@@ -303,21 +328,21 @@ contract Vaccination {
             approvedVaccines[name].approved == true,
             "Vaccine is not approved."
         );
-        bytes memory _user_recieved_vaccine = bytes(users[user].vaccine_name);
-        bytes memory _user_recieving_vaccine = bytes(name);
+        // bytes memory _user_recieved_vaccine = bytes(users[user].vaccine_name);
+        // bytes memory _user_recieving_vaccine = bytes(name);
 
-        if (_user_recieved_vaccine.length > 0) {
-            if (
-                _user_recieved_vaccine.length != _user_recieving_vaccine.length
-            ) {
-                revert("Vaccine not compatible.");
-            }
-            for (uint256 i = 0; i < _user_recieved_vaccine.length; i++) {
-                if (_user_recieved_vaccine[i] != _user_recieving_vaccine[i]) {
-                    revert("Vaccine not compatible.");
-                }
-            }
-        }
+        // if (_user_recieved_vaccine.length > 0) {
+        //     if (
+        //         _user_recieved_vaccine.length != _user_recieving_vaccine.length
+        //     ) {
+        //         revert("Vaccine not compatible.");
+        //     }
+        //     for (uint256 i = 0; i < _user_recieved_vaccine.length; i++) {
+        //         if (_user_recieved_vaccine[i] != _user_recieving_vaccine[i]) {
+        //             revert("Vaccine not compatible.");
+        //         }
+        //     }
+        // }
         uint256 user_vaccineCount = getUserVaccineCount(user);
         uint256 required_vaccineCount = getRequiredVaccineCount(name);
 
@@ -362,9 +387,10 @@ contract Vaccination {
         returns (VaccineStatus status)
     {
         uint256 user_vaccineCount = users[user].vaccine_count;
-        uint256 required_vaccineCount = approvedVaccines[
-            users[user].vaccine_name
-        ].schedule.length;
+        // uint256 required_vaccineCount = approvedVaccines[
+        //     users[user].vaccine_name
+        // ].schedule.length;
+        uint256 required_vaccineCount = 2;
 
         if (user_vaccineCount == 0) {
             return VaccineStatus.UNVACCINATED;
