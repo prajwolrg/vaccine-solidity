@@ -62,8 +62,13 @@ contract Vaccination {
 
     struct Organization {
         string name;
+        string url;
+        string document_hash;
+        string logo_hash;
         string location;
-        string ipfs_hash;
+        string phone;
+        string email;
+
         address[] healthPersons;
         bool approved;
         bool registration;
@@ -158,7 +163,7 @@ contract Vaccination {
         emit AddBatch(name, batch_id);
     }
 
-    function registerOrganization(string memory name, string memory location)
+    function registerOrganization(string memory name, string memory url, string memory document_hash, string memory logo_hash, string memory location, string memory phone, string memory email)
         public
         payable
     {
@@ -166,7 +171,13 @@ contract Vaccination {
             revert("Insufficient amount.");
         }
         organizations[msg.sender].name = name;
+        organizations[msg.sender].url = url;
+        organizations[msg.sender].document_hash = document_hash;
+        organizations[msg.sender].logo_hash = logo_hash;
         organizations[msg.sender].location = location;
+        organizations[msg.sender].phone = phone;
+        organizations[msg.sender].email = email;
+
         organizations[msg.sender].registration = true;
         organizationsList.push(msg.sender);
         roles[msg.sender] = Role.ORGANIZATION;

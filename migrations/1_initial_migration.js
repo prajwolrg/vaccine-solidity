@@ -44,37 +44,29 @@ organizations = [
     {
         'name': 'Grande International Hospital',
         'url': 'https://www.grandehospital.com/',
-        'ipfs_hash': 'https://www.grandehospital.com/',
+        'logo_hash': 'ipfs_hash',
+        'document_hash': 'https://www.grandehospital.com/',
         'location': '27.753094359189657, 85.3258460820991',
-        'contact': {
-            'email1': 'info@grandehospital.com',
-            'phone1': '+977-1-5159266,',
-            'phone2': '+977-1-5159267,',
-            'phone3': '+977-9801202550'
-        }
+        'phone': '+977-1-5159266,',
+        'email': 'info@grandehospital.com',
     },
     {
         'name': 'Norvic International Hospital',
         'url': 'https://www.norvichospital.com/',
-        'ipfs_hash': 'https://www.norvichospital.com/',
+        'logo_hash': 'https://www.norvichospital.com/',
+        'document_hash': 'ipfs_hash',
         'location': '27.690222585866792, 85.31913930908078',
-        'contact': {
-            'email1': 'info@norvichospital.com',
-            'phone1': '+977 1-5970032',
-            'phone2': '+977-1-4218230',
-            'phone3': '+977-1-4101600'
-        }
+        'email': 'info@norvichospital.com',
+        'phone': '+977 1-5970032',
     },
     {
         'name': 'Nepal Mediciti Hospital',
         'url': 'https://www.nepalmediciti.com/',
-        'ipfs_hash': 'https://www.nepalmediciti.com/',
+        'logo_hash': 'https://www.nepalmediciti.com/',
+        'document_hash': 'ipfs_hash',
         'location': '27.66259787526539, 85.30307300001515',
-        'contact': {
-            'email1': 'info@nepalmediciti.com',
-            'phone1': '+977-1-4217766',
-            'phone2': '+977-981-0136491',
-        }
+        'email': 'info@nepalmediciti.com',
+        'phone': '+977-1-4217766',
     },
 ]
 
@@ -92,11 +84,20 @@ module.exports = async function (deployer, network, accounts) {
     // console.log(typeof(vaccination))
 
     // Register Organization
-    await vaccination.registerOrganization(
-        "Sahid Hospital",
-        "Kalanki",
-        { from: accounts[2], value: 100 }
-    );
+    for (let i=0; i <organizations.length; i++) {
+        console.log(`Adding organization ${organizations[i].name}: ${accounts[1 + i]}`)
+        await vaccination.registerOrganization(
+            organizations[i]['name'],
+            organizations[i]['url'],
+            organizations[i]['document_hash'],
+            organizations[i]['logo_hash'],
+            organizations[i]['location'],
+            organizations[i]['phone'],
+            organizations[i]['email'],
+
+            { from: accounts[1 + i], value: 100 })
+        console.log(`Approving organization ${organizations[i].name}: ${accounts[1 + i]}`)
+    }
 
     // Approve organization
     await vaccination.approveOrganization(accounts[2])
