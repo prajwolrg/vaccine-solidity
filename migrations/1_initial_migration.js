@@ -50,7 +50,6 @@ module.exports = async function (deployer, network, accounts) {
     await deployer.deploy(Vaccination);
     const vaccination = await Vaccination.deployed()
     console.log('Adding data to contractAddresses')
-    await addContractAddresses(Vaccination.address)
     // console.log(vaccination)
     // console.log(typeof(vaccination))
 
