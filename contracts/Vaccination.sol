@@ -68,7 +68,6 @@ contract Vaccination {
         string location;
         string phone;
         string email;
-
         address[] healthPersons;
         bool approved;
         bool registration;
@@ -80,7 +79,7 @@ contract Vaccination {
         bool approved;
     }
 
-    mapping (address => Role) public roles;
+    mapping(address => Role) public roles;
 
     mapping(string => VaccineDetails) public approvedVaccines;
     mapping(string => mapping(uint256 => BatchDetails)) public approvedBatches;
@@ -163,10 +162,15 @@ contract Vaccination {
         emit AddBatch(name, batch_id);
     }
 
-    function registerOrganization(string memory name, string memory url, string memory document_hash, string memory logo_hash, string memory location, string memory phone, string memory email)
-        public
-        payable
-    {
+    function registerOrganization(
+        string memory name,
+        string memory url,
+        string memory document_hash,
+        string memory logo_hash,
+        string memory location,
+        string memory phone,
+        string memory email
+    ) public payable {
         if (msg.value < REGISTRATION_COST) {
             revert("Insufficient amount.");
         }
