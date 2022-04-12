@@ -4,6 +4,7 @@ const Vaccination = artifacts.require("Vaccination");
 
 const { ethers, providers, BigNumber } = require("ethers");
 const axios = require('axios');
+const exp = require('constants');
 
 userAccounts = [
     {
@@ -118,7 +119,7 @@ module.exports = async function (deployer, network, accounts) {
         // await checkUser(accounts[6 + i], network)
     }
 
-    //Add vaccines
+    //Add vaccines and batches
     for (let i = 0; i < vaccines.length; i++) {
         console.log(`Approving Vaccine: ${vaccines[i].name}`)
         await vaccination.approveVaccine(vaccines[i].name, vaccines[i].schedule)
@@ -129,20 +130,38 @@ module.exports = async function (deployer, network, accounts) {
             const defrostDate = currentTime - (1 * 86400)
             const expiryDate = currentTime.toNumber() + (30 * 86400)
             const useByDate = currentTime.toNumber() + (25 * 86400)
+            console.log(currentTime)
+            console.log(defrostDate)
+            console.log(expiryDate)
+            console.log(useByDate)
             await vaccination.addBatch(vaccines[i].name, batchId, defrostDate, expiryDate, useByDate, 200);
-            console.log(`current Time: ${currentTime}`)
-            console.log(`defrost date: ${defrostDate}`)
-            console.log(`expiry date: ${expiryDate}`)
-            console.log(`use by date: ${useByDate}`)
             console.log(`Adding ${vaccines[i].name} - Batch: ${batchId}`)
         }
 
+        let vaccineDetails = await vaccination.approvedVaccines(vaccines[0].name)
+        console.log(vaccineDetails)
+
+        vaccineDetails = await vaccination.getVaccineDetails(vaccines[0].name)
+        console.log(vaccineDetails)
+        console.log(vaccineDetails[2])
     }
+
+
     //Approving healthPersons
     console.log(`Approving healthperson: ${accounts[9]}`)
     await vaccination.approveHealthPerson(accounts[9], { from: accounts[2] })
     console.log(`Approving healthperson: ${accounts[8]}`)
     await vaccination.approveHealthPerson(accounts[8], { from: accounts[2] })
+
+    //Transfer vaccine to the organizations
+    await vaccination.transfer(accounts[2], vaccines[0].name, vaccines[0].batches[0], 10)
+
+    let userDetails = await vaccination.getUserDetails(accounts[7])
+    console.log(userDetails)
+    await vaccination.vaccinate(accounts[7], vaccines[0].name, vaccines[0].batches[0], {from: accounts[9]})
+    await vaccination.vaccinate(accounts[7], vaccines[0].name, vaccines[0].batches[0], {from: accounts[9]})
+    userDetails = await vaccination.getUserDetails(accounts[7])
+    console.log(userDetails)
 
     if (network == 'private') {
         console.log('Adding data to contractAddresses')

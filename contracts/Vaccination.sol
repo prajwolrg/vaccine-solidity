@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
+pragma experimental ABIEncoderV2;
+
 
 uint256 constant REGISTRATION_COST = 10;
 
@@ -451,4 +453,17 @@ contract Vaccination {
     function getRole(address user) public view returns (Role) {
         return roles[user];
     }
+
+    function getVaccineDetails(string memory name) public view returns(VaccineDetails memory) {
+        return approvedVaccines[name];
+    }
+
+    function getUserDetails(address userAddress) public view returns (User memory) {
+        return users[userAddress];
+    }
+
+    // function getOrganizationDetails(address orgAddress) public view returns (Organization memory) {
+    //     return organizations[orgAddress];
+    // }
+
 }
