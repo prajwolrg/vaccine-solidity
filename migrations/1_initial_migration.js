@@ -87,10 +87,9 @@ module.exports = async function (deployer, network, accounts) {
         for (let j = 0; j < vaccines[i].batches.length; j++) {
             const batchId = vaccines[i].batches[j]
             const currentTime = await vaccination.now();
-            const defrostDate = Math.floor((currentTime - 1 * 86400)/1000)
-
-            const expiryDate = Math.floor((currentTime + 30 * 86400)/1000)
-            const useByDate = Math.floor((currentTime + 25 * 86400)/1000)
+            const defrostDate = currentTime - 1 * 86400
+            const expiryDate = currentTime + 30 * 86400
+            const useByDate = currentTime + 25 * 86400
             await vaccination.addBatch(vaccines[i].name, batchId, defrostDate, expiryDate, useByDate, 200);
             console.log(`Adding ${vaccines[i].name} - Batch: ${batchId}`)
         }
