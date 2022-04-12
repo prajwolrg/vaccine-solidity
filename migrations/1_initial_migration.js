@@ -40,6 +40,44 @@ vaccines = [
     }
 ]
 
+organizations = [
+    {
+        'name': 'Grande International Hospital',
+        'url': 'https://www.grandehospital.com/',
+        'ipfs_hash': 'https://www.grandehospital.com/',
+        'location': '27.753094359189657, 85.3258460820991',
+        'contact': {
+            'email1': 'info@grandehospital.com',
+            'phone1': '+977-1-5159266,',
+            'phone2': '+977-1-5159267,',
+            'phone3': '+977-9801202550'
+        }
+    },
+    {
+        'name': 'Norvic International Hospital',
+        'url': 'https://www.norvichospital.com/',
+        'ipfs_hash': 'https://www.norvichospital.com/',
+        'location': '27.690222585866792, 85.31913930908078',
+        'contact': {
+            'email1': 'info@norvichospital.com',
+            'phone1': '+977 1-5970032',
+            'phone2': '+977-1-4218230',
+            'phone3': '+977-1-4101600'
+        }
+    },
+    {
+        'name': 'Nepal Mediciti Hospital',
+        'url': 'https://www.nepalmediciti.com/',
+        'ipfs_hash': 'https://www.nepalmediciti.com/',
+        'location': '27.66259787526539, 85.30307300001515',
+        'contact': {
+            'email1': 'info@nepalmediciti.com',
+            'phone1': '+977-1-4217766',
+            'phone2': '+977-981-0136491',
+        }
+    },
+]
+
 module.exports = async function (deployer, network, accounts) {
     console.log(`Deployer: ${deployer}`)
     console.log(`Network: ${network}`)
@@ -90,7 +128,7 @@ module.exports = async function (deployer, network, accounts) {
             const defrostDate = currentTime - (1 * 86400)
             const expiryDate = currentTime.toNumber() + (30 * 86400)
             const useByDate = currentTime.toNumber() + (25 * 86400)
-            // await vaccination.addBatch(vaccines[i].name, batchId, defrostDate, expiryDate, useByDate, 200);
+            await vaccination.addBatch(vaccines[i].name, batchId, defrostDate, expiryDate, useByDate, 200);
             console.log(`current Time: ${currentTime}`)
             console.log(`defrost date: ${defrostDate}`)
             console.log(`expiry date: ${expiryDate}`)
