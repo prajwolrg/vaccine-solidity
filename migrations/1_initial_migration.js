@@ -31,7 +31,7 @@ userAccounts = [
     }
 ]
 
-organizations = [
+const organizations = [
     {
         'name': 'Grande International Hospital',
         'url': 'https://www.grandehospital.com/',
@@ -61,19 +61,127 @@ organizations = [
     },
 ]
 
-
+const vaccines = [
+ {
+  "name": "CoronaVac",
+  "schedule": [0,14],
+  "platform": "IV",
+  "route": "IM",
+  "developers ": "Sinovac Research and Development Co., Ltd",
+  "ipfs_hash": "ipfs_hash"
+ },
+ {
+  "name": "Verocell",
+  "schedule": [0, 21],
+  "platform": "IV",
+  "route": "IM",
+  "developers ": "Sinopharm; China National Biotec Group Co;Wuhan Institute of Biological Products ",
+  "ipfs_hash": "ipfs_hash"
+ },
+ {
+  "name": "Vaxzevria",
+  "schedule": [0, 28],
+  "platform": "VVnr",
+  "route": "IM",
+  "developers ": "AstraZeneca; University of Oxford",
+  "ipfs_hash": "ipfs_hash"
+ },
+ {
+  "name": "Adenovirus",
+  "schedule": [0],
+  "platform": "VVnr",
+  "route": "IM ",
+  "developers ": "CanSino Biological Inc.; Beijing Institute of Biotechnology",
+  "ipfs_hash": "ipfs_hash"
+ },
+ {
+  "name": "Sputnik V",
+  "schedule": [0, 21],
+  "platform": "VVnr",
+  "route": "IM",
+  "developers ": "Gamaleya Research Institute ; Health Ministry of the Russian Federation\n",
+  "ipfs_hash": "ipfs_hash"
+ },
+ {
+  "name": "Ad26.COV2.S",
+  "schedule": [0, 56],
+  "platform": "VVnr",
+  "route": "IM",
+  "developers ": "Janssen Pharmaceutical; Johnson & Johnson",
+  "ipfs_hash": "ipfs_hash"
+ },
+ {
+  "name": "Spikevax",
+  "schedule": [0, 28],
+  "platform": "RNA",
+  "route": "IM",
+  "developers ": "Moderna;  National Institute of Allergy and Infectious Diseases (NIAID)",
+  "ipfs_hash": "ipfs_hash"
+ },
+ {
+  "name": "Comirnaty",
+  "schedule": [0, 21],
+  "platform": "RNA",
+  "route": "IM",
+  "developers ": " Pfizer\/BioNTech; Fosun Pharma ",
+  "ipfs_hash": "ipfs_hash"
+ },
+ {
+  "name": "Zifivax ",
+  "schedule": [0, 28, 56],
+  "platform": "PS",
+  "route": "IM",
+  "developers ": "Chinese Academy of Sciences",
+  "ipfs_hash": "ipfs_hash"
+ },
+ {
+  "name": "CVnCoV Vaccine",
+  "schedule": [0, 28],
+  "platform": "RNA",
+  "route": "IM",
+  "developers ": "CureVac AG",
+  "ipfs_hash": "ipfs_hash"
+ },
+ {
+  "name": "QazCovid",
+  "schedule": [0, 21],
+  "platform": "IV",
+  "route": "IM",
+  "developers ": "Research Institute for Biological Safety Problems, Rep of Kazakhstan",
+  "ipfs_hash": "ipfs_hash"
+ },
+ {
+  "name": "INO-4800",
+  "schedule": [0, 28],
+  "platform": "IV",
+  "route": "ID ",
+  "developers ": "Inovio Pharmaceuticals;  International Vaccine Institute;  Advaccine ",
+  "ipfs_hash": "ipfs_hash"
+ },
+ {
+  "name": "Covaxine",
+  "schedule": [0, 14],
+  "platform": "DNA",
+  "route": "IM",
+  "developers ": "Bharat Biotech International Limited",
+  "ipfs_hash": "ipfs_hash"
+ }
+]
 
 module.exports = async function (deployer, network, accounts) {
     console.log(network)
     console.log(accounts)
     var tx_result;
 
-    await deployer.deploy(Government, 'Nepal', 'NP', 'np_ipfs_hash');
-    const govt = await Government.deployed();
-    console.log(`Government contract deployed: ${Government.address}`)
-
     await deployer.deploy(OrganizationFactory)
     const orgFactory = await OrganizationFactory.deployed()
+
+    await deployer.deploy(VaccineFactory)
+    const vFactory = await VaccineFactory.deployed()
+
+    await deployer.deploy(Government, 'Nepal', 'NP', 'np_ipfs_hash', VaccineFactory.address, OrganizationFactory.address);
+    const govt = await Government.deployed();
+    console.log(`Government contract deployed: ${Government.address}`)
 
     for (let i=0; i <organizations.length; i++) {
         console.log(`Adding organization ${organizations[i].name}: ${accounts[1 + i]}`)
@@ -85,14 +193,11 @@ module.exports = async function (deployer, network, accounts) {
             organizations[i]['document_hash'],
             organizations[i]['location'],
             organizations[i]['phone'],
-            organizations[i]['email'],
-
-            { from: accounts[1 + i] })
-        console.log(`Approving organization ${organizations[i].name}: ${accounts[1 + i]}`)
+            organizations[i]['email'],)
     }
 
-    const orgAddresses = await orgFactory.getOrganizations()
-    console.log(tx_result)
+    const orgAddresses = await orgFactory.getOrganizationAddresses()
+    console.log(orgAddresses)
 
     tx_result = await orgFactory.getOrganizationDetails(orgAddresses[0])
     console.log(tx_result)
@@ -100,30 +205,43 @@ module.exports = async function (deployer, network, accounts) {
     tx_result = await orgFactory.getAllOrganizationsWithDetails()
     console.log(tx_result)
 
-    await deployer.deploy(VaccineFactory)
-    const vFactory = await VaccineFactory.deployed()
-    console.log('Vaccine Factory')
 
-    await govt.approveOrganization(orgAddresses[0]);
-    console.log(`Organization approved.`)
+    for (let i=0; i<vaccines.length; i++) {
+        console.log(`Adding vaccine ${vaccines[i].name}`)
+        await vFactory.createVaccine(
+            vaccines[i].name,
+            vaccines[i].schedule,
+            vaccines[i].platform,
+            vaccines[i].route,
+            vaccines[i].ipfs_hash
+        )
+    }
 
-    await deployer.deploy(Vaccine, 'Verocell', 'VC');
-    const verocell = await Vaccine.deployed();
-    console.log(`Vaccine contract deployed: ${Vaccine.address}`)
 
+    const vaccineAddresses = await vFactory.getVaccineAddresses()
+    console.log(vaccineAddresses)
+
+    // tx_result = await vFactory.getVaccineDetails(vaccineAddresses[1])
+    // console.log(tx_result)
+
+    tx_result = await vFactory.getAllVaccinesWithDetails()
+    console.log(tx_result)
+
+
+    const verocell = await Vaccine.at(vaccineAddresses[1])
     const currentTime = Date.now();
     const defrostDate = Math.floor((currentTime - (1 * 86400)) / 1000)
     const expiryDate = Math.floor((currentTime + (30 * 86400)) / 1000)
     const useByDate = Math.floor((currentTime + (25 * 86400)) / 1000)
     await verocell.addBatch('101', defrostDate, expiryDate, useByDate, 200)
     await verocell.addBatch('102', defrostDate, expiryDate, useByDate, 200)
+    console.log(`Vaccine batch added: 101 and 102`)
 
     await govt.registerIndividual(1999, 0, 'prajwolhash', 'imagehash', { from: accounts[9] });
     await govt.registerIndividual(1999, 0, 'prajwolhash', 'imagehash', { from: accounts[8] });
 
     await verocell.transfer(orgAddresses[0], '101', 10);
     await verocell.transfer(orgAddresses[0], '102', 10);
-    console.log(`Vaccine batch added: 101 and 102`)
 
     const org = await Organization.at(orgAddresses[0])
     console.log(`Individual registered.`)
@@ -133,6 +251,11 @@ module.exports = async function (deployer, network, accounts) {
     tx_result = await org.getApprovedHealthPersons()
     console.log(tx_result)
 
-    await org.vaccinate(accounts[8], Vaccine.address, '101', { from: accounts[9] });
+    tx_result = await govt.organizationApprovalStatus(orgAddresses[0])
+    console.log(tx_result)
+    await govt.approveOrganization(orgAddresses[0])
+    tx_result = await govt.organizationApprovalStatus(orgAddresses[0])
+    console.log(tx_result)
+    await org.vaccinate(accounts[8], vaccineAddresses[1], '101', { from: accounts[9] });
 
 };

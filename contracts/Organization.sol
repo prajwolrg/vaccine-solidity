@@ -7,25 +7,13 @@ interface IOGovernment {
 
     function checkUserRegistration(address user) external view;
 
-    function vaccinate(
-        address to,
-        address vaccine_address,
-        string memory batch_id
-    ) external;
+    function vaccinate( address to, address vaccine_address, string memory batch_id) external;
 }
 
 interface IOVaccine {
-    function approve(
-        address to,
-        uint256 batchId,
-        uint256 quantity
-    ) external;
+    function approve( address to, uint256 batchId, uint256 quantity) external;
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 batchId
-    ) external;
+    function transferFrom( address from, address to, uint256 batchId) external;
 
     function name() external view returns (string memory);
 
@@ -59,7 +47,7 @@ contract Organization {
     address[] public healthPersons;
     mapping(address => bool) public healthPersonApprovalStatus;
 
-    address superAdmin;
+    address public superAdmin;
 
     event HealthPersonAdded(address indexed account);
     event Vaccined(
@@ -79,7 +67,7 @@ contract Organization {
         string memory _phone,
         string memory _email
     ) {
-        superAdmin = msg.sender;
+        superAdmin = tx.origin;
 
         name_ = _name;
         url_ = _url;
@@ -121,12 +109,20 @@ contract Organization {
         return email_;
     }
 
-    function approveHealthPerson(address person) public {
+    modifier onlySuperAdmin() {
+        require(
+            msg.sender == superAdmin,
+            "Only admin can perform the function."
+        );
+        _;
+    }
+
+    function approveHealthPerson(address person) public onlySuperAdmin {
         healthPersons.push(person);
         healthPersonApprovalStatus[person] = true;
     }
 
-    function disapproveHealthPerson(address person) public {
+    function disapproveHealthPerson(address person) public onlySuperAdmin{
         address[] memory hps = new address[](healthPersons.length - 1);
 
         uint256 j = 0;
@@ -213,7 +209,7 @@ contract OrganizationFactory {
         orgs.push(org);
     }
 
-    function getOrganizations() public view returns (Organization[] memory) {
+    function getOrganizationAddresses() public view returns (Organization[] memory) {
         return orgs;
     }
 
@@ -247,6 +243,14 @@ contract OrganizationFactory {
         OrgDetails[] memory organizations = new OrgDetails[](orgs.length);
         for (uint i=0; i<orgs.length; i++) {
             organizations[i] = getOrganizationDetails(address(orgs[i]));
+        }
+        return organizations;
+    }
+
+    function getSpeficiedOrganizationDetails(address[] memory orgAddrs) public view returns (OrgDetails[] memory) {
+        OrgDetails[] memory organizations = new OrgDetails[](orgAddrs.length);
+        for (uint i=0; i<orgs.length; i++) {
+            organizations[i] = getOrganizationDetails(orgAddrs[i]);
         }
         return organizations;
     }
