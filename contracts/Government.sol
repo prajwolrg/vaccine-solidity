@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.7.5;
+pragma experimental ABIEncoderV2;
 
 uint256 constant ORG_REGISTRATION_COST = 10;
 
-interface Organization {
+interface IGOrganization {
 	function name() external view returns(string memory);
 	function symbol() external view returns(string memory);
 	function ipfs_hash() external view returns(string memory);
 }
 
-interface Vaccine {
+interface IGVaccine {
   function approve(address to, uint256 batchId, uint256 quantity) external;
   function transferFrom(address from, address to, uint256 batchId) external;
   function getVaccineSchedule() external view returns(uint256[] memory);
@@ -45,16 +46,20 @@ contract Government {
       FULLY_VACCINATED
   }
 
+	struct Vaccine {
+		address vaccine_address;
+		// string vaccine_name;
+		string batch;
+		uint256 datetime;
+	}
+
 
 	struct User {
 			uint256 year_of_birth;
 			Gender gender;
 			string namehash;
 			string imagehash;
-			address vaccine_address;
-			uint256[] batches;
-			uint256[] datetime;
-			uint256 vaccine_count;
+			Vaccine[] vaccines;
 			bool registered;
 	}
 	mapping(address => User) public users;
@@ -63,7 +68,7 @@ contract Government {
 	event OrganizationRegistration(address indexed org, string indexed name, string indexed symbol);
 	event VaccineApproved(address indexed vaccine);
 	event RegisterIndividual(address indexed user);
-  event Vaccinate(address indexed user, address indexed vaccine_address, uint256 indexed batch_id);
+  event Vaccinate(address indexed user, address indexed vaccine_address, string indexed batch_id);
 
   // Constructor
   constructor(string memory _name, string memory _symbol, string memory _ipfs_hash) {
@@ -111,11 +116,10 @@ contract Government {
 
 	function registerOrganization(string memory _name, string memory _symbol, string memory _ipfs_hash)
 			public
-			payable
 	{
-			if (msg.value < ORG_REGISTRATION_COST) {
-					revert("Insufficient amount.");
-			}
+			// if (msg.value < ORG_REGISTRATION_COST) {
+			// 		revert("Insufficient amount.");
+			// }
 			require(!org_ipfs_hash[_ipfs_hash], "Organization already registered.");
 			require(!org_names[_name], "Organization name already taken.");
 			require(!org_symbols[_symbol], "Organization symbol already taken.");
@@ -126,7 +130,7 @@ contract Government {
 	}
 
   function approveOrganization(address org_address) public {
-		Organization org = Organization(org_address);
+		IGOrganization org = IGOrganization(org_address);
 		require(org_ipfs_hash[org.ipfs_hash()], "Organization not registered.");
 		require(org_names[org.name()], "Organization not registered.");
 		require(org_symbols[org.symbol()], "Organization not registered.");
@@ -137,14 +141,15 @@ contract Government {
 	function vaccinate(
 			address to,
 			address vaccine_address,
-			uint256 batch_id
+			string memory batch_id
 	) public onlyApprovedOrganization {
 			checkUserRegistration(to);
-			users[to].vaccine_address = vaccine_address;
-			users[to].batches.push(batch_id);
-			users[to].datetime.push(block.timestamp);
-			users[to].vaccine_count += 1;
-			changeStatus(to);
+			users[to].vaccines.push(Vaccine(vaccine_address, batch_id, block.timestamp));
+			// users[to].vaccine_address = vaccine_address;
+			// users[to].batches.push(batch_id);
+			// users[to].datetime.push(block.timestamp);
+			// users[to].vaccine_count += 1;
+			// changeStatus(to);
 			emit Vaccinate(to, vaccine_address, batch_id);
 	}
 
@@ -157,48 +162,43 @@ contract Government {
         require(users[user].registered == true, "Unregistered user");
     }
 
-    function getUserVaccineCount(address user) public view returns (uint256) {
-        uint256 count = users[user].vaccine_count;
-        return count;
-    }
-
     function getRequiredVaccineCount(address vaccine_address)
         public
         view
         returns (uint256)
     {
-        Vaccine vaccine = Vaccine(vaccine_address);
+        IGVaccine vaccine = IGVaccine(vaccine_address);
         return vaccine.getVaccineScheduleLength();
     }
 
-    function changeStatus(address user) private {
-        VaccineStatus status = getVaccineStatusOf(user);
-        if (status == VaccineStatus.FULLY_VACCINATED) {
-          fully_vaccinated += 1;
-        }
-        if (status == VaccineStatus.PARTIALLY_VACCINATED) {
-          	partially_vaccinated += 1;
-        }
-    }
+    // function changeStatus(address user) private {
+    //     VaccineStatus status = getVaccineStatusOf(user);
+    //     if (status == VaccineStatus.FULLY_VACCINATED) {
+    //       fully_vaccinated += 1;
+    //     }
+    //     if (status == VaccineStatus.PARTIALLY_VACCINATED) {
+    //       	partially_vaccinated += 1;
+    //     }
+    // }
 
-    function getVaccineStatusOf(address user)
-        public
-        view
-        returns (VaccineStatus status)
-    {
-        uint256 user_vaccineCount = users[user].vaccine_count;
-        uint256 required_vaccineCount = getRequiredVaccineCount(users[user].vaccine_address);
+    // function getVaccineStatusOf(address user)
+    //     public
+    //     view
+    //     returns (VaccineStatus status)
+    // {
+    //     uint256 user_vaccineCount = users[user].vaccine_count;
+    //     uint256 required_vaccineCount = getRequiredVaccineCount(users[user].vaccine_address);
 
-        if (user_vaccineCount == 0) {
-            return VaccineStatus.UNVACCINATED;
-        }
-        if (user_vaccineCount < required_vaccineCount) {
-            return VaccineStatus.PARTIALLY_VACCINATED;
-        }
-        if (user_vaccineCount == required_vaccineCount) {
-            return VaccineStatus.FULLY_VACCINATED;
-        }
-    }
+    //     if (user_vaccineCount == 0) {
+    //         return VaccineStatus.UNVACCINATED;
+    //     }
+    //     if (user_vaccineCount < required_vaccineCount) {
+    //         return VaccineStatus.PARTIALLY_VACCINATED;
+    //     }
+    //     if (user_vaccineCount == required_vaccineCount) {
+    //         return VaccineStatus.FULLY_VACCINATED;
+    //     }
+    // }
 
 
 

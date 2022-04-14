@@ -61,6 +61,7 @@ contract Vaccine {
   uint256[] private schedule;
 
   struct Batch {
+    string batch_name;
     uint256 defrost_date;
     uint256 manufacture_expiry;
     uint256 use_by_date;
@@ -75,24 +76,14 @@ contract Vaccine {
     uint256 amount;
   }
 
-  struct OwnerBatch {
-    string batchId;
-    uint256 units;
-  }
-
-  mapping (address => mapping(address => bool)) fullApprovals;
-
-  mapping(string => uint256) public batchIdToSupply;
-  mapping(address => mapping(string => uint256)) public ownerToBatchToBalance;
-  mapping(address => mapping(string => Transactor)) approvals;
-  mapping(string => Batch) public batchDetails;
-
-  string[] batches;
+  mapping(uint256 => uint256) public batchIdToSupply;
+  mapping(address => mapping(uint256 => uint256)) ownerToBatchToBalance;
+  mapping(address => mapping(uint256 => Transactor)) approvals;
+  mapping(uint256 => Batch) public batches;
 
   event Transfer(address indexed from, address indexed to, uint256 indexed batchId, uint256 units);
-  event Approval(address indexed from, address indexed to, string indexed batchId, uint256 units);
+  event Approval(address indexed from, address indexed to, uint256 indexed batchId, uint256 units);
   event NewBatch(string indexed batch_name);
-  event Vaccined(address indexed to, string indexed batchId);
 
   // Constructor
   constructor(string memory _name, string memory _symbol) {
@@ -105,35 +96,36 @@ contract Vaccine {
     return vaccineCount;
   }
 
-  function individualSupply(string memory batchId) public view returns (uint256) {
+  function individualSupply(uint256 batchId) public view returns (uint256) {
     return batchIdToSupply[batchId];
   }
 
-  function balanceOf(address owner, string memory batchId) public view returns (uint256) {
+  function balanceOf(address owner, uint256 batchId) public view returns (uint256) {
     /* if (ownerToBatchToBalance[owner] == 0) return 0; */
     return ownerToBatchToBalance[owner][batchId];
   }
 
   // class of 0 is meaningless and should be ignored.
-  function batchesOwned(address owner) public view returns (OwnerBatch[] memory){
-    string[] memory tempBatches = new string[](batches.length);
+  function batchesOwned(address owner) public view returns (uint256[] memory){
+    uint256[] memory tempBatches = new uint256[](currentBatch - 1);
     uint256 count = 0;
-    for (uint256 i = 0; i < batches.length; i++){
-      if (ownerToBatchToBalance[owner][batches[i]] != 0){
-        tempBatches[count] = batches[i];
+    for (uint256 i = 1; i < currentBatch; i++){
+      if (ownerToBatchToBalance[owner][i] != 0){
+        if (ownerToBatchToBalance[owner][i] != 0){
+          tempBatches[count] = i;
+        }
         count += 1;
       }
     }
-    OwnerBatch[] memory batches_ = new OwnerBatch[](count);
+    uint256[] memory batches_ = new uint256[](count);
     for (uint i = 0; i < count; i++){
-      batches_[i].batchId = tempBatches[i];
-      batches_[i].units = ownerToBatchToBalance[owner][tempBatches[i]];
+      batches_[i] = tempBatches[i];
     }
     return batches_;
   }
 
-  function transfer(address to, string memory batchId, uint256 quantity) public {
-    require(ownerToBatchToBalance[msg.sender][batchId] >= quantity, "Owner do not hold vaccine");
+  function transfer(address to, uint256 batchId, uint256 quantity) public {
+    require(ownerToBatchToBalance[msg.sender][batchId] >= quantity);
     ownerToBatchToBalance[msg.sender][batchId] -= quantity;
     ownerToBatchToBalance[to][batchId] += quantity;
     Transactor memory zeroApproval;
@@ -141,7 +133,7 @@ contract Vaccine {
     approvals[msg.sender][batchId] = zeroApproval;
   }
 
-  function approve(address to, string memory batchId, uint256 quantity) public {
+  function approve(address to, uint256 batchId, uint256 quantity) public {
     require(ownerToBatchToBalance[msg.sender][batchId] >= quantity);
     Transactor memory takerApproval;
     takerApproval = Transactor(to, quantity);
@@ -149,18 +141,7 @@ contract Vaccine {
     emit Approval(msg.sender, to, batchId, quantity);
   }
 
-  function approveAll(address to) public {
-    fullApprovals[msg.sender][to] = true;
-  }
-
-  function vaccinate(address to, string memory batchId) public {
-    require(ownerToBatchToBalance[msg.sender][batchId]>0, "Not enough vaccine");
-    ownerToBatchToBalance[msg.sender][batchId] -= 1;
-    ownerToBatchToBalance[to][batchId] += 1;
-    emit Vaccined(to, batchId);
-  }
-
-  function transferFrom(address from, address to, string memory batchId) public {
+  function transferFrom(address from, address to, uint256 batchId) public {
     Transactor storage takerApproval = approvals[from][batchId];
     uint256 quantity = takerApproval.amount;
     require(takerApproval.actor == to && quantity >= ownerToBatchToBalance[from][batchId]);
@@ -171,7 +152,7 @@ contract Vaccine {
     approvals[from][batchId] = zeroApproval;
   }
 
-  function addBatch(string memory batchId, uint256 defrost_date, uint256 manufacture_expiry, uint256 use_by_date, uint256 units) public {
+  function addBatch(uint256 batchId, string memory batch_name, uint256 defrost_date, uint256 manufacture_expiry, uint256 use_by_date, uint256 units) public {
     require(msg.sender == Owner, "Only Pharmacy can add the batch.");
     require(defrost_date < block.timestamp, "Must be previously defrosted");
     require(manufacture_expiry > block.timestamp, "Expired");
@@ -180,16 +161,33 @@ contract Vaccine {
         "Must be used prior to use by date."
     );
 
-    batchDetails[batchId].defrost_date = defrost_date;
-    batchDetails[batchId].manufacture_expiry = manufacture_expiry;
-    batchDetails[batchId].use_by_date = use_by_date;
-    batchDetails[batchId].units = units;
-    ownerToBatchToBalance[msg.sender][batchId] = units;
+    batches[batchId].batch_name = batch_name;
+    batches[batchId].defrost_date = defrost_date;
+    batches[batchId].manufacture_expiry = manufacture_expiry;
+    batches[batchId].use_by_date = use_by_date;
+    batches[batchId].units = units;
 
     vaccineCount += units;
     currentBatch += 1;
-    batches.push(batchId);
-    emit NewBatch(batchId);
+    emit NewBatch(batch_name);
+  }
+
+  function checkBatch(uint256 batch_id) public view {
+      require(batch_id > 0, "Invalid batch");
+      require(batch_id <= currentBatch, "Invalid batch");
+      require(
+          batches[batch_id].defrost_date < block.timestamp,
+          "Must be previously defrosted"
+      );
+      require(
+          batches[batch_id].manufacture_expiry >
+              block.timestamp,
+          "Expired"
+      );
+      require(
+          batches[batch_id].use_by_date > block.timestamp,
+          "Must be used prior to use by date."
+      );
   }
 
   function getVaccineSchedule() public view returns(uint256[] memory){
