@@ -66,6 +66,7 @@ organizations = [
 module.exports = async function (deployer, network, accounts) {
     console.log(network)
     console.log(accounts)
+    var tx_result;
 
     await deployer.deploy(Government, 'Nepal', 'NP', 'np_ipfs_hash');
     const govt = await Government.deployed();
@@ -80,57 +81,58 @@ module.exports = async function (deployer, network, accounts) {
             Government.address,
             organizations[i]['name'],
             organizations[i]['url'],
+            organizations[i]['logo_hash'],
             organizations[i]['document_hash'],
-            // organizations[i]['logo_hash'],
-            // organizations[i]['location'],
-            // organizations[i]['phone'],
-            // organizations[i]['email'],
+            organizations[i]['location'],
+            organizations[i]['phone'],
+            organizations[i]['email'],
 
             { from: accounts[1 + i] })
         console.log(`Approving organization ${organizations[i].name}: ${accounts[1 + i]}`)
     }
 
-    const tx_result = await orgFactory.getOrganizations()
+    const orgAddresses = await orgFactory.getOrganizations()
     console.log(tx_result)
 
-    // await deployer.deploy(VaccineFactory)
-    // const vFactory = await VaccineFactory.deployed()
+    tx_result = await orgFactory.getOrganizationDetails(orgAddresses[0])
+    console.log(tx_result)
 
-    // await deployer.deploy(Organization, Government.address, 'Alka Hospital', 'AH', 'alka_ipfs_hash')
-    // const org = await Organization.deployed();
-    // console.log(`Organization contract deployed: ${Organization.address}`)
+    tx_result = await orgFactory.getAllOrganizationsWithDetails()
+    console.log(tx_result)
 
-    // await govt.approveOrganization(Organization.address);
-    // console.log(`Organization approved.`)
+    await deployer.deploy(VaccineFactory)
+    const vFactory = await VaccineFactory.deployed()
+    console.log('Vaccine Factory')
 
-    // await deployer.deploy(Vaccine, 'Verocell', 'VC');
-    // const verocell = await Vaccine.deployed();
-    // console.log(`Vaccine contract deployed: ${Vaccine.address}`)
+    await govt.approveOrganization(orgAddresses[0]);
+    console.log(`Organization approved.`)
 
-    // await govt.approveOrganization(Organization.address);
-    // console.log(`Organization approved.`)
+    await deployer.deploy(Vaccine, 'Verocell', 'VC');
+    const verocell = await Vaccine.deployed();
+    console.log(`Vaccine contract deployed: ${Vaccine.address}`)
 
-    // const currentTime = Date.now();
-    // const defrostDate = Math.floor((currentTime - (1 * 86400)) / 1000)
-    // const expiryDate = Math.floor((currentTime + (30 * 86400)) / 1000)
-    // const useByDate = Math.floor((currentTime + (25 * 86400)) / 1000)
-    // await verocell.addBatch('101', defrostDate, expiryDate, useByDate, 200)
-    // await verocell.addBatch('102', defrostDate, expiryDate, useByDate, 200)
+    const currentTime = Date.now();
+    const defrostDate = Math.floor((currentTime - (1 * 86400)) / 1000)
+    const expiryDate = Math.floor((currentTime + (30 * 86400)) / 1000)
+    const useByDate = Math.floor((currentTime + (25 * 86400)) / 1000)
+    await verocell.addBatch('101', defrostDate, expiryDate, useByDate, 200)
+    await verocell.addBatch('102', defrostDate, expiryDate, useByDate, 200)
 
-    // await govt.registerIndividual(1999, 0, 'prajwolhash', 'imagehash', { from: accounts[9] });
-    // await govt.registerIndividual(1999, 0, 'prajwolhash', 'imagehash', { from: accounts[8] });
+    await govt.registerIndividual(1999, 0, 'prajwolhash', 'imagehash', { from: accounts[9] });
+    await govt.registerIndividual(1999, 0, 'prajwolhash', 'imagehash', { from: accounts[8] });
 
-    // await verocell.transfer(org.address, '101', 10);
-    // await verocell.transfer(org.address, '102', 10);
-    // console.log(`Vaccine batch added: 101 and 102`)
+    await verocell.transfer(orgAddresses[0], '101', 10);
+    await verocell.transfer(orgAddresses[0], '102', 10);
+    console.log(`Vaccine batch added: 101 and 102`)
 
-    // console.log(`Individual registered.`)
-    // await org.approveHealthPerson(accounts[9]);
-    // console.log(`Individual approved as healthperson.`)
+    const org = await Organization.at(orgAddresses[0])
+    console.log(`Individual registered.`)
+    await org.approveHealthPerson(accounts[9]);
+    console.log(`Individual approved as healthperson.`)
 
-    // const tx_result = await org.getApprovedHealthPersons()
-    // console.log(tx_result)
+    tx_result = await org.getApprovedHealthPersons()
+    console.log(tx_result)
 
-    // await org.vaccinate(accounts[8], Vaccine.address, '101', { from: accounts[9] });
+    await org.vaccinate(accounts[8], Vaccine.address, '101', { from: accounts[9] });
 
 };

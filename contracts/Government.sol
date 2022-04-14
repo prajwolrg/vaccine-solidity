@@ -34,6 +34,10 @@ contract Government {
 	mapping (string => bool) org_symbols;
 	mapping (string => bool) org_ipfs_hash;
 
+	address[] registeredOrganizations;
+	address[] approvedOrganizations;
+	address[] rejectedOrganizations;
+
 	enum Gender {
 			MALE,
 			FEMALE,
@@ -114,28 +118,29 @@ contract Government {
 			emit RegisterIndividual(msg.sender);
 	}
 
-	function registerOrganization(string memory _name, string memory _symbol, string memory _ipfs_hash)
+	function registerOrganization()
 			public
 	{
 			// if (msg.value < ORG_REGISTRATION_COST) {
 			// 		revert("Insufficient amount.");
 			// }
-			require(!org_ipfs_hash[_ipfs_hash], "Organization already registered.");
-			require(!org_names[_name], "Organization name already taken.");
-			require(!org_symbols[_symbol], "Organization symbol already taken.");
-			org_ipfs_hash[_ipfs_hash] = true;
-			org_names[_name] = true;
-			org_symbols[_symbol] = true;
-			emit OrganizationRegistration(msg.sender, _name, _symbol);
+			// require(!org_ipfs_hash[_ipfs_hash], "Organization already registered.");
+			// require(!org_names[_name], "Organization name already taken.");
+			// require(!org_symbols[_symbol], "Organization symbol already taken.");
+			// org_ipfs_hash[_ipfs_hash] = true;
+			// org_names[_name] = true;
+			// org_symbols[_symbol] = true;
+			registeredOrganizations.push(msg.sender);
+			// emit OrganizationRegistration(msg.sender, _name, _symbol);
 	}
 
   function approveOrganization(address org_address) public {
-		IGOrganization org = IGOrganization(org_address);
-		require(org_ipfs_hash[org.ipfs_hash()], "Organization not registered.");
-		require(org_names[org.name()], "Organization not registered.");
-		require(org_symbols[org.symbol()], "Organization not registered.");
+		// IGOrganization org = IGOrganization(org_address);
+		// require(org_ipfs_hash[org.ipfs_hash()], "Organization not registered.");
+		// require(org_names[org.name()], "Organization not registered.");
+		// require(org_symbols[org.symbol()], "Organization not registered.");
 		organizationApprovalStatus[org_address] = true;
-		emit OrganizationApproval(org_address, org.name(), org.symbol());
+		// emit OrganizationApproval(org_address, org.name(), org.symbol());
   }
 
 	function vaccinate(
