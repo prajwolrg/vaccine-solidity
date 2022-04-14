@@ -59,6 +59,16 @@ contract Organization {
         address indexed vaccine
     );
 
+    struct orgDetails {
+        string name;
+        string url;
+        string logo_hash;
+        string document_hash;
+        string location;
+        string phone;
+        string email;
+    }
+
     // Constructor
     constructor(
         address government,
@@ -138,5 +148,18 @@ contract Organization {
             }
         }
         return hps;
+    }
+}
+
+contract OrganizationFactory{
+    Organization[] public orgs;
+
+    function createOrganization(address gov, string memory name, string memory symbol, string memory ipfs_hash) public {
+        Organization org = new Organization(gov, name, symbol, ipfs_hash);
+        orgs.push(org);
+    }
+
+    function getOrganizations() public view returns (Organization[] memory) {
+        return orgs;
     }
 }

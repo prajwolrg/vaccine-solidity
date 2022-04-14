@@ -201,3 +201,12 @@ contract Vaccine {
   }
 
 }
+
+contract VaccineFactory{
+    Vaccine[] public vaccines;
+
+    function createOrganization(string memory name, string memory symbol) public {
+        Vaccine v = new Vaccine(name, symbol);
+        vaccines.push(v);
+    }
+}
