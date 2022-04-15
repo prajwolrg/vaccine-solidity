@@ -4,6 +4,9 @@ const Vaccine = artifacts.require("Vaccine");
 const OrganizationFactory = artifacts.require("OrganizationFactory")
 const VaccineFactory = artifacts.require("VaccineFactory")
 
+const { ethers} = require("ethers");
+const fs = require('fs');
+
 userAccounts = [
     {
         "name": "Gaurav Pokharel",
@@ -62,110 +65,110 @@ const organizations = [
 ]
 
 const vaccines = [
- {
-  "name": "CoronaVac",
-  "schedule": [0,14],
-  "platform": "IV",
-  "route": "IM",
-  "developers ": "Sinovac Research and Development Co., Ltd",
-  "ipfs_hash": "ipfs_hash"
- },
- {
-  "name": "Verocell",
-  "schedule": [0, 21],
-  "platform": "IV",
-  "route": "IM",
-  "developers ": "Sinopharm; China National Biotec Group Co;Wuhan Institute of Biological Products ",
-  "ipfs_hash": "ipfs_hash"
- },
- {
-  "name": "Vaxzevria",
-  "schedule": [0, 28],
-  "platform": "VVnr",
-  "route": "IM",
-  "developers ": "AstraZeneca; University of Oxford",
-  "ipfs_hash": "ipfs_hash"
- },
- {
-  "name": "Adenovirus",
-  "schedule": [0],
-  "platform": "VVnr",
-  "route": "IM ",
-  "developers ": "CanSino Biological Inc.; Beijing Institute of Biotechnology",
-  "ipfs_hash": "ipfs_hash"
- },
- {
-  "name": "Sputnik V",
-  "schedule": [0, 21],
-  "platform": "VVnr",
-  "route": "IM",
-  "developers ": "Gamaleya Research Institute ; Health Ministry of the Russian Federation\n",
-  "ipfs_hash": "ipfs_hash"
- },
- {
-  "name": "Ad26.COV2.S",
-  "schedule": [0, 56],
-  "platform": "VVnr",
-  "route": "IM",
-  "developers ": "Janssen Pharmaceutical; Johnson & Johnson",
-  "ipfs_hash": "ipfs_hash"
- },
- {
-  "name": "Spikevax",
-  "schedule": [0, 28],
-  "platform": "RNA",
-  "route": "IM",
-  "developers ": "Moderna;  National Institute of Allergy and Infectious Diseases (NIAID)",
-  "ipfs_hash": "ipfs_hash"
- },
- {
-  "name": "Comirnaty",
-  "schedule": [0, 21],
-  "platform": "RNA",
-  "route": "IM",
-  "developers ": " Pfizer\/BioNTech; Fosun Pharma ",
-  "ipfs_hash": "ipfs_hash"
- },
- {
-  "name": "Zifivax ",
-  "schedule": [0, 28, 56],
-  "platform": "PS",
-  "route": "IM",
-  "developers ": "Chinese Academy of Sciences",
-  "ipfs_hash": "ipfs_hash"
- },
- {
-  "name": "CVnCoV Vaccine",
-  "schedule": [0, 28],
-  "platform": "RNA",
-  "route": "IM",
-  "developers ": "CureVac AG",
-  "ipfs_hash": "ipfs_hash"
- },
- {
-  "name": "QazCovid",
-  "schedule": [0, 21],
-  "platform": "IV",
-  "route": "IM",
-  "developers ": "Research Institute for Biological Safety Problems, Rep of Kazakhstan",
-  "ipfs_hash": "ipfs_hash"
- },
- {
-  "name": "INO-4800",
-  "schedule": [0, 28],
-  "platform": "IV",
-  "route": "ID ",
-  "developers ": "Inovio Pharmaceuticals;  International Vaccine Institute;  Advaccine ",
-  "ipfs_hash": "ipfs_hash"
- },
- {
-  "name": "Covaxine",
-  "schedule": [0, 14],
-  "platform": "DNA",
-  "route": "IM",
-  "developers ": "Bharat Biotech International Limited",
-  "ipfs_hash": "ipfs_hash"
- }
+    {
+        "name": "CoronaVac",
+        "schedule": [0, 14],
+        "platform": "IV",
+        "route": "IM",
+        "developers ": "Sinovac Research and Development Co., Ltd",
+        "ipfs_hash": "ipfs_hash"
+    },
+    {
+        "name": "Verocell",
+        "schedule": [0, 21],
+        "platform": "IV",
+        "route": "IM",
+        "developers ": "Sinopharm; China National Biotec Group Co;Wuhan Institute of Biological Products ",
+        "ipfs_hash": "ipfs_hash"
+    },
+    {
+        "name": "Vaxzevria",
+        "schedule": [0, 28],
+        "platform": "VVnr",
+        "route": "IM",
+        "developers ": "AstraZeneca; University of Oxford",
+        "ipfs_hash": "ipfs_hash"
+    },
+    {
+        "name": "Adenovirus",
+        "schedule": [0],
+        "platform": "VVnr",
+        "route": "IM ",
+        "developers ": "CanSino Biological Inc.; Beijing Institute of Biotechnology",
+        "ipfs_hash": "ipfs_hash"
+    },
+    {
+        "name": "Sputnik V",
+        "schedule": [0, 21],
+        "platform": "VVnr",
+        "route": "IM",
+        "developers ": "Gamaleya Research Institute ; Health Ministry of the Russian Federation\n",
+        "ipfs_hash": "ipfs_hash"
+    },
+    {
+        "name": "Ad26.COV2.S",
+        "schedule": [0, 56],
+        "platform": "VVnr",
+        "route": "IM",
+        "developers ": "Janssen Pharmaceutical; Johnson & Johnson",
+        "ipfs_hash": "ipfs_hash"
+    },
+    {
+        "name": "Spikevax",
+        "schedule": [0, 28],
+        "platform": "RNA",
+        "route": "IM",
+        "developers ": "Moderna;  National Institute of Allergy and Infectious Diseases (NIAID)",
+        "ipfs_hash": "ipfs_hash"
+    },
+    {
+        "name": "Comirnaty",
+        "schedule": [0, 21],
+        "platform": "RNA",
+        "route": "IM",
+        "developers ": " Pfizer\/BioNTech; Fosun Pharma ",
+        "ipfs_hash": "ipfs_hash"
+    },
+    {
+        "name": "Zifivax ",
+        "schedule": [0, 28, 56],
+        "platform": "PS",
+        "route": "IM",
+        "developers ": "Chinese Academy of Sciences",
+        "ipfs_hash": "ipfs_hash"
+    },
+    {
+        "name": "CVnCoV Vaccine",
+        "schedule": [0, 28],
+        "platform": "RNA",
+        "route": "IM",
+        "developers ": "CureVac AG",
+        "ipfs_hash": "ipfs_hash"
+    },
+    {
+        "name": "QazCovid",
+        "schedule": [0, 21],
+        "platform": "IV",
+        "route": "IM",
+        "developers ": "Research Institute for Biological Safety Problems, Rep of Kazakhstan",
+        "ipfs_hash": "ipfs_hash"
+    },
+    {
+        "name": "INO-4800",
+        "schedule": [0, 28],
+        "platform": "IV",
+        "route": "ID ",
+        "developers ": "Inovio Pharmaceuticals;  International Vaccine Institute;  Advaccine ",
+        "ipfs_hash": "ipfs_hash"
+    },
+    {
+        "name": "Covaxine",
+        "schedule": [0, 14],
+        "platform": "DNA",
+        "route": "IM",
+        "developers ": "Bharat Biotech International Limited",
+        "ipfs_hash": "ipfs_hash"
+    }
 ]
 
 module.exports = async function (deployer, network, accounts) {
@@ -183,7 +186,7 @@ module.exports = async function (deployer, network, accounts) {
     const govt = await Government.deployed();
     console.log(`Government contract deployed: ${Government.address}`)
 
-    for (let i=0; i <organizations.length; i++) {
+    for (let i = 0; i < organizations.length; i++) {
         console.log(`Adding organization ${organizations[i].name}: ${accounts[1 + i]}`)
         await orgFactory.createOrganization(
             Government.address,
@@ -193,7 +196,7 @@ module.exports = async function (deployer, network, accounts) {
             organizations[i]['document_hash'],
             organizations[i]['location'],
             organizations[i]['phone'],
-            organizations[i]['email'],)
+            organizations[i]['email'])
     }
 
     const orgAddresses = await orgFactory.getOrganizationAddresses()
@@ -206,7 +209,7 @@ module.exports = async function (deployer, network, accounts) {
     console.log(tx_result)
 
 
-    for (let i=0; i<vaccines.length; i++) {
+    for (let i = 0; i < vaccines.length; i++) {
         console.log(`Adding vaccine ${vaccines[i].name}`)
         await vFactory.createVaccine(
             vaccines[i].name,
@@ -215,6 +218,16 @@ module.exports = async function (deployer, network, accounts) {
             vaccines[i].route,
             vaccines[i].ipfs_hash
         )
+    }
+
+    for (i = 0; i < userAccounts.length; i++) {
+        console.log(`Adding user ${userAccounts[i].name}: ${accounts[6 + i]}`)
+        await govt.registerIndividual(
+            userAccounts[i]['yearOfBirth'],
+            userAccounts[i]['gender'],
+            ethers.utils.id(userAccounts[i]['name']),
+            userAccounts[i]['ipfs_hash'],
+            { from: accounts[6 + i] })
     }
 
 
@@ -237,9 +250,6 @@ module.exports = async function (deployer, network, accounts) {
     await verocell.addBatch('102', defrostDate, expiryDate, useByDate, 200)
     console.log(`Vaccine batch added: 101 and 102`)
 
-    await govt.registerIndividual(1999, 0, 'prajwolhash', 'imagehash', { from: accounts[9] });
-    await govt.registerIndividual(1999, 0, 'prajwolhash', 'imagehash', { from: accounts[8] });
-
     await verocell.transfer(orgAddresses[0], '101', 10);
     await verocell.transfer(orgAddresses[0], '102', 10);
 
@@ -258,4 +268,36 @@ module.exports = async function (deployer, network, accounts) {
     console.log(tx_result)
     await org.vaccinate(accounts[8], vaccineAddresses[1], '101', { from: accounts[9] });
 
+    if (network == 'private') {
+        console.log('Adding data to contractAddresses')
+        await addContractAddresses({
+            'vaccineFactory': VaccineFactory.address,
+            'organizationFactory': OrganizationFactory.address,
+            'government': Government.address
+        })
+    }
+
+
 };
+
+const addContractAddresses = async (contracts) => {
+    const date = new Date()
+    const dateString = date.toString()
+    const newdata = {
+        'time': dateString,
+        'contracts': contracts
+    }
+
+    let alldata = []
+    let prevdata = await fs.readFileSync('contractAddresses.json')
+    prevdata = prevdata.toString()
+    prevdata = JSON.parse(prevdata)
+
+    for (let i = 0; i < prevdata.length; i++) {
+        alldata.push(prevdata[i])
+    }
+    alldata.push(newdata)
+
+    await fs.writeFileSync('contractAddresses.json', JSON.stringify(alldata))
+}
+
