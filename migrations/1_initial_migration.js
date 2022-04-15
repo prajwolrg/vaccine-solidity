@@ -4,7 +4,7 @@ const Vaccine = artifacts.require("Vaccine");
 const OrganizationFactory = artifacts.require("OrganizationFactory")
 const VaccineFactory = artifacts.require("VaccineFactory")
 
-const { ethers} = require("ethers");
+const { ethers } = require("ethers");
 const fs = require('fs');
 
 userAccounts = [
@@ -71,7 +71,7 @@ const vaccines = [
         "platform": "IV",
         "route": "IM",
         "developers ": "Sinovac Research and Development Co., Ltd",
-        "ipfs_hash": "ipfs_hash"
+        "ipfs_hash": "ipfs_hash",
     },
     {
         "name": "Verocell",
@@ -89,86 +89,86 @@ const vaccines = [
         "developers ": "AstraZeneca; University of Oxford",
         "ipfs_hash": "ipfs_hash"
     },
-    {
-        "name": "Adenovirus",
-        "schedule": [0],
-        "platform": "VVnr",
-        "route": "IM ",
-        "developers ": "CanSino Biological Inc.; Beijing Institute of Biotechnology",
-        "ipfs_hash": "ipfs_hash"
-    },
-    {
-        "name": "Sputnik V",
-        "schedule": [0, 21],
-        "platform": "VVnr",
-        "route": "IM",
-        "developers ": "Gamaleya Research Institute ; Health Ministry of the Russian Federation\n",
-        "ipfs_hash": "ipfs_hash"
-    },
-    {
-        "name": "Ad26.COV2.S",
-        "schedule": [0, 56],
-        "platform": "VVnr",
-        "route": "IM",
-        "developers ": "Janssen Pharmaceutical; Johnson & Johnson",
-        "ipfs_hash": "ipfs_hash"
-    },
-    {
-        "name": "Spikevax",
-        "schedule": [0, 28],
-        "platform": "RNA",
-        "route": "IM",
-        "developers ": "Moderna;  National Institute of Allergy and Infectious Diseases (NIAID)",
-        "ipfs_hash": "ipfs_hash"
-    },
-    {
-        "name": "Comirnaty",
-        "schedule": [0, 21],
-        "platform": "RNA",
-        "route": "IM",
-        "developers ": " Pfizer\/BioNTech; Fosun Pharma ",
-        "ipfs_hash": "ipfs_hash"
-    },
-    {
-        "name": "Zifivax ",
-        "schedule": [0, 28, 56],
-        "platform": "PS",
-        "route": "IM",
-        "developers ": "Chinese Academy of Sciences",
-        "ipfs_hash": "ipfs_hash"
-    },
-    {
-        "name": "CVnCoV Vaccine",
-        "schedule": [0, 28],
-        "platform": "RNA",
-        "route": "IM",
-        "developers ": "CureVac AG",
-        "ipfs_hash": "ipfs_hash"
-    },
-    {
-        "name": "QazCovid",
-        "schedule": [0, 21],
-        "platform": "IV",
-        "route": "IM",
-        "developers ": "Research Institute for Biological Safety Problems, Rep of Kazakhstan",
-        "ipfs_hash": "ipfs_hash"
-    },
-    {
-        "name": "INO-4800",
-        "schedule": [0, 28],
-        "platform": "IV",
-        "route": "ID ",
-        "developers ": "Inovio Pharmaceuticals;  International Vaccine Institute;  Advaccine ",
-        "ipfs_hash": "ipfs_hash"
-    },
-    {
-        "name": "Covaxine",
-        "schedule": [0, 14],
-        "platform": "DNA",
-        "route": "IM",
-        "developers ": "Bharat Biotech International Limited",
-        "ipfs_hash": "ipfs_hash"
-    }
+    // {
+    //     "name": "Adenovirus",
+    //     "schedule": [0],
+    //     "platform": "VVnr",
+    //     "route": "IM ",
+    //     "developers ": "CanSino Biological Inc.; Beijing Institute of Biotechnology",
+    //     "ipfs_hash": "ipfs_hash"
+    // },
+    // {
+    //     "name": "Sputnik V",
+    //     "schedule": [0, 21],
+    //     "platform": "VVnr",
+    //     "route": "IM",
+    //     "developers ": "Gamaleya Research Institute ; Health Ministry of the Russian Federation\n",
+    //     "ipfs_hash": "ipfs_hash"
+    // },
+    // {
+    //     "name": "Ad26.COV2.S",
+    //     "schedule": [0, 56],
+    //     "platform": "VVnr",
+    //     "route": "IM",
+    //     "developers ": "Janssen Pharmaceutical; Johnson & Johnson",
+    //     "ipfs_hash": "ipfs_hash"
+    // },
+    // {
+    //     "name": "Spikevax",
+    //     "schedule": [0, 28],
+    //     "platform": "RNA",
+    //     "route": "IM",
+    //     "developers ": "Moderna;  National Institute of Allergy and Infectious Diseases (NIAID)",
+    //     "ipfs_hash": "ipfs_hash"
+    // },
+    // {
+    //     "name": "Comirnaty",
+    //     "schedule": [0, 21],
+    //     "platform": "RNA",
+    //     "route": "IM",
+    //     "developers ": " Pfizer\/BioNTech; Fosun Pharma ",
+    //     "ipfs_hash": "ipfs_hash"
+    // },
+    // {
+    //     "name": "Zifivax ",
+    //     "schedule": [0, 28, 56],
+    //     "platform": "PS",
+    //     "route": "IM",
+    //     "developers ": "Chinese Academy of Sciences",
+    //     "ipfs_hash": "ipfs_hash"
+    // },
+    // {
+    //     "name": "CVnCoV Vaccine",
+    //     "schedule": [0, 28],
+    //     "platform": "RNA",
+    //     "route": "IM",
+    //     "developers ": "CureVac AG",
+    //     "ipfs_hash": "ipfs_hash"
+    // },
+    // {
+    //     "name": "QazCovid",
+    //     "schedule": [0, 21],
+    //     "platform": "IV",
+    //     "route": "IM",
+    //     "developers ": "Research Institute for Biological Safety Problems, Rep of Kazakhstan",
+    //     "ipfs_hash": "ipfs_hash"
+    // },
+    // {
+    //     "name": "INO-4800",
+    //     "schedule": [0, 28],
+    //     "platform": "IV",
+    //     "route": "ID ",
+    //     "developers ": "Inovio Pharmaceuticals;  International Vaccine Institute;  Advaccine ",
+    //     "ipfs_hash": "ipfs_hash"
+    // },
+    // {
+    //     "name": "Covaxine",
+    //     "schedule": [0, 14],
+    //     "platform": "DNA",
+    //     "route": "IM",
+    //     "developers ": "Bharat Biotech International Limited",
+    //     "ipfs_hash": "ipfs_hash"
+    // }
 ]
 
 module.exports = async function (deployer, network, accounts) {
@@ -185,6 +185,7 @@ module.exports = async function (deployer, network, accounts) {
     await deployer.deploy(Government, 'Nepal', 'NP', 'np_ipfs_hash', VaccineFactory.address, OrganizationFactory.address);
     const govt = await Government.deployed();
 
+    // Adding organizations
     for (let i = 0; i < organizations.length; i++) {
         console.log(`Adding organization ${organizations[i].name}: ${accounts[1 + i]}`)
         await orgFactory.createOrganization(
@@ -202,6 +203,7 @@ module.exports = async function (deployer, network, accounts) {
     const org = await Organization.at(orgAddresses[0])
     await govt.approveOrganization(orgAddresses[0])
 
+    // Adding vaccines
     for (let i = 0; i < vaccines.length; i++) {
         console.log(`Adding vaccine ${vaccines[i].name}`)
         await vFactory.createVaccine(
@@ -212,18 +214,38 @@ module.exports = async function (deployer, network, accounts) {
             vaccines[i].ipfs_hash
         )
     }
+
     const vaccineAddresses = await vFactory.getVaccineAddresses()
+    //Adding vaccine batches
+    for (let i = 0; i < vaccineAddresses.length; i++) {
+        var vaccine = await Vaccine.at(vaccineAddresses[i])
+        const noOfBatches = 2;
+        batches = makeBatches(noOfBatches, 8)
+        for (let j = 0; j < batches.length; j++) {
+            var batchId = batches[j].batchId
+            console.log(`Adding batch ${batchId} for vaccine ${vaccines[i].name}`)
+            var currentTime = Date.now();
+            var defrostDate = Math.floor((currentTime - (1 * 86400)) / 1000)
+            var expiryDate = Math.floor((currentTime + (30 * 86400)) / 1000)
+            var useByDate = Math.floor((currentTime + (25 * 86400)) / 1000)
+            await vaccine.addBatch(batchId, defrostDate, expiryDate, useByDate ,batches[j].units);
+        }
+    }
+
     const verocell = await Vaccine.at(vaccineAddresses[1])
-    const currentTime = Date.now();
-    const defrostDate = Math.floor((currentTime - (1 * 86400)) / 1000)
-    const expiryDate = Math.floor((currentTime + (30 * 86400)) / 1000)
-    const useByDate = Math.floor((currentTime + (25 * 86400)) / 1000)
+    currentTime = Date.now();
+    defrostDate = Math.floor((currentTime - (1 * 86400)) / 1000)
+    expiryDate = Math.floor((currentTime + (30 * 86400)) / 1000)
+    useByDate = Math.floor((currentTime + (25 * 86400)) / 1000)
     await verocell.addBatch('101', defrostDate, expiryDate, useByDate, 200)
     await verocell.addBatch('102', defrostDate, expiryDate, useByDate, 200)
     console.log(`Vaccine batch added: 101 and 102`)
 
     await verocell.transfer(orgAddresses[0], '101', 10);
     await verocell.transfer(orgAddresses[0], '102', 10);
+
+    tx_result = await verocell.getAllBatches()
+    console.log(tx_result)
 
     for (i = 0; i < userAccounts.length; i++) {
         console.log(`Adding user ${userAccounts[i].name}: ${accounts[6 + i]}`)
@@ -234,12 +256,12 @@ module.exports = async function (deployer, network, accounts) {
             userAccounts[i]['ipfs_hash'],
             { from: accounts[6 + i] })
     }
-    await org.approveHealthPerson(accounts[9], {gasLimit: '0x27100', gasPrice: '0x09184e72a00'});
+    await org.approveHealthPerson(accounts[9], { gasLimit: '0x27100', gasPrice: '0x09184e72a00' });
 
     await org.vaccinate(accounts[8], vaccineAddresses[1], '101', { from: accounts[9] });
 
-    tx_result = await govt.getUser(accounts[8])
-    console.log(tx_result)
+    // tx_result = await govt.getUser(accounts[8])
+    // console.log(tx_result)
 
     if (network == 'private') {
         console.log('Adding data to contractAddresses')
@@ -272,3 +294,32 @@ const addContractAddresses = async (contracts) => {
     await fs.writeFileSync('contractAddresses.json', JSON.stringify(alldata))
 }
 
+function makeBatch(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var numerals = '1234567890';
+    var charactersLength = characters.length;
+    var i = 0;
+    for (i; i < 2; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    for (i; i < length; i++) {
+        result += numerals.charAt(Math.floor(Math.random() * numerals.length))
+    }
+
+    const units = Math.floor(Math.random() * 1000)
+
+    return {
+        'batchId': result,
+        'units': units
+    };
+}
+
+function makeBatches(number, length) {
+    var batches = []
+    for (let i = 0; i < number; i++) {
+        let batch = makeBatch(length);
+        batches.push(batch);
+    }
+    return batches;
+}

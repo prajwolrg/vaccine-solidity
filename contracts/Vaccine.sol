@@ -286,6 +286,10 @@ contract Vaccine {
         emit NewBatch(batchId);
     }
 
+    function getAllBatches() public view returns (string[] memory){
+        return batches;
+    }
+
     modifier onlySuperAdmin() {
         require(
             msg.sender == superAdmin,
