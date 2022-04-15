@@ -74,6 +74,7 @@ contract Vaccine {
     address public superAdmin;
 
     struct Batch {
+        string batchId;
         uint256 defrost_date;
         uint256 manufacture_expiry;
         uint256 use_by_date;
@@ -274,6 +275,7 @@ contract Vaccine {
             "Must be used prior to use by date."
         );
 
+        batchDetails[batchId].batchId = batchId;
         batchDetails[batchId].defrost_date = defrost_date;
         batchDetails[batchId].manufacture_expiry = manufacture_expiry;
         batchDetails[batchId].use_by_date = use_by_date;
@@ -288,6 +290,19 @@ contract Vaccine {
 
     function getAllBatches() public view returns (string[] memory){
         return batches;
+    }
+
+    function getAllBatchesWithDetails() public view returns (Batch[] memory){
+        Batch[] memory allBatchDetails = new Batch[](batches.length);
+        for (uint i=0; i<batches.length; i++) {
+            Batch memory batch = batchDetails[batches[i]];
+            allBatchDetails[i] = batch;
+        }
+        return allBatchDetails;
+    }
+
+    function getBatchDetails(string memory batchId) public view returns (Batch memory) {
+        return batchDetails[batchId];
     }
 
     modifier onlySuperAdmin() {

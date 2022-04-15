@@ -246,6 +246,10 @@ module.exports = async function (deployer, network, accounts) {
 
     tx_result = await verocell.getAllBatches()
     console.log(tx_result)
+    tx_result = await verocell.getBatchDetails('101')
+    console.log(tx_result)
+    // tx_result = await verocell.getAllBatchesWithDetails()
+    // console.log(tx_result)
 
     for (i = 0; i < userAccounts.length; i++) {
         console.log(`Adding user ${userAccounts[i].name}: ${accounts[6 + i]}`)
