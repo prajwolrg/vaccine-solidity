@@ -62,7 +62,12 @@ interface IFVaccine {
 }
 
 interface IVOrganization {
-    function onVaccineReceived() external;
+    function onVaccineReceived() external returns(bool);
+    function getGovernmentAddress() external view returns (address);
+}
+
+interface IVGovernment {
+    function getOrganizationApprovalStatus(address org) external view returns (bool);
 }
 
 contract Vaccine {
@@ -215,7 +220,10 @@ contract Vaccine {
             "Owner do not hold vaccine"
         );
         IVOrganization org = IVOrganization(to);
-        org.onVaccineReceived();
+        require(org.onVaccineReceived(), "Receiver must implement onVaccineRecieved");
+        address govtAddress = org.getGovernmentAddress();
+        IVGovernment gov = IVGovernment(govtAddress);
+        require(gov.getOrganizationApprovalStatus(to), "Only Approved Organization can recieve vaccines");
         ownerToBatchToBalance[msg.sender][batchId] -= quantity;
         ownerToBatchToBalance[to][batchId] += quantity;
         Transactor memory zeroApproval;

@@ -139,6 +139,10 @@ contract Organization {
         return email_;
     }
 
+    function getGovernmentAddress() public view returns (address) {
+        return address(gov);
+    }
+
     modifier onlySuperAdmin() {
         require(
             msg.sender == superAdmin,
@@ -168,7 +172,7 @@ contract Organization {
         healthPersons = hps;
     }
 
-    function onVaccineReceived() public {
+    function onVaccineReceived() public returns (bool){
         require(
             gov.getVaccineApprovalStatus(msg.sender),
             "Vaccine must be approved."
@@ -177,6 +181,7 @@ contract Organization {
             vaccines.push(msg.sender);
             vaccineStatus[msg.sender] = true;
         }
+        return true;
     }
 
     function vaccinate(
