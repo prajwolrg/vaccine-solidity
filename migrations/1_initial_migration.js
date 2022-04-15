@@ -241,6 +241,7 @@ module.exports = async function (deployer, network, accounts) {
     await verocell.addBatch('102', defrostDate, expiryDate, useByDate, 200)
     console.log(`Vaccine batch added: 101 and 102`)
 
+    await govt.approveVaccine(vaccineAddresses[1]);
     await verocell.transfer(orgAddresses[0], '101', 10);
     await verocell.transfer(orgAddresses[0], '102', 10);
 

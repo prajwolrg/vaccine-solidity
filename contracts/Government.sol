@@ -70,6 +70,8 @@ contract Government {
     address[] approvedOrganizations;
     address[] rejectedOrganizations;
 
+    address[] approvedVaccines;
+
     enum Gender {
         MALE,
         FEMALE,
@@ -144,9 +146,19 @@ contract Government {
         return users[user_address];
     }
 
-    function approveVaccine(address vaccine) public {
+    function approveVaccine(address vaccine) public onlySuperAdmin {
+        require(!vaccineApprovalStatus[vaccine], "Vaccine already approved");
         vaccineApprovalStatus[vaccine] = true;
+        approvedVaccines.push(vaccine);
         emit VaccineApproved(vaccine);
+    }
+
+    function getVaccineApprovalStatus(address vaccine) public view returns(bool) {
+        return vaccineApprovalStatus[vaccine];
+    }
+
+    function getOrganizationApprovalStatus(address org) public view returns(bool) {
+        return organizationApprovalStatus[org];
     }
 
     function registerIndividual(

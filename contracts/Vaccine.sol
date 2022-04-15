@@ -61,6 +61,10 @@ interface IFVaccine {
     function ipfs_hash() external view returns (string memory);
 }
 
+interface IVOrganization {
+    function onVaccineReceived() external;
+}
+
 contract Vaccine {
     using SafeMath for uint256;
 
@@ -210,6 +214,8 @@ contract Vaccine {
             ownerToBatchToBalance[msg.sender][batchId] >= quantity,
             "Owner do not hold vaccine"
         );
+        IVOrganization org = IVOrganization(to);
+        org.onVaccineReceived();
         ownerToBatchToBalance[msg.sender][batchId] -= quantity;
         ownerToBatchToBalance[to][batchId] += quantity;
         Transactor memory zeroApproval;

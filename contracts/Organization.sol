@@ -4,16 +4,37 @@ pragma experimental ABIEncoderV2;
 
 interface IOGovernment {
     function registerOrganization() external;
+
     function checkUserRegistration(address user) external view;
-    function vaccinate( address to, address vaccine_address, string memory batch_id) external;
+
+    function vaccinate(
+        address to,
+        address vaccine_address,
+        string memory batch_id
+    ) external;
+
     function approveHealthPerson(address person) external;
-    function disapproveHealthPerson(address person) external; 
+
+    function disapproveHealthPerson(address person) external;
+
+    function getVaccineApprovalStatus(address vaccine)
+        external
+        view
+        returns (bool);
 }
 
 interface IOVaccine {
-    function approve( address to, uint256 batchId, uint256 quantity) external;
+    function approve(
+        address to,
+        uint256 batchId,
+        uint256 quantity
+    ) external;
 
-    function transferFrom( address from, address to, uint256 batchId) external;
+    function transferFrom(
+        address from,
+        address to,
+        uint256 batchId
+    ) external;
 
     function name() external view returns (string memory);
 
@@ -21,13 +42,19 @@ interface IOVaccine {
 }
 
 interface IFOrganization {
-    function name() external view returns(string memory);
-    function url() external view returns(string memory);
-    function logo_hash() external view returns(string memory);
-    function document_hash() external view returns(string memory);
+    function name() external view returns (string memory);
+
+    function url() external view returns (string memory);
+
+    function logo_hash() external view returns (string memory);
+
+    function document_hash() external view returns (string memory);
+
     function location() external view returns (string memory);
+
     function phone() external view returns (string memory);
-    function email() external view returns(string memory);
+
+    function email() external view returns (string memory);
 }
 
 contract Organization {
@@ -46,6 +73,9 @@ contract Organization {
 
     address[] public healthPersons;
     mapping(address => bool) public healthPersonApprovalStatus;
+
+    address[] public vaccines;
+    mapping(address => bool) public vaccineStatus;
 
     address public superAdmin;
 
@@ -123,7 +153,7 @@ contract Organization {
         gov.approveHealthPerson(person);
     }
 
-    function disapproveHealthPerson(address person) public onlySuperAdmin{
+    function disapproveHealthPerson(address person) public onlySuperAdmin {
         address[] memory hps = new address[](healthPersons.length - 1);
 
         uint256 j = 0;
@@ -136,6 +166,17 @@ contract Organization {
             }
         }
         healthPersons = hps;
+    }
+
+    function onVaccineReceived() public {
+        require(
+            gov.getVaccineApprovalStatus(msg.sender),
+            "Vaccine must be approved."
+        );
+        if (!vaccineStatus[msg.sender]) {
+            vaccines.push(msg.sender);
+            vaccineStatus[msg.sender] = true;
+        }
     }
 
     function vaccinate(
@@ -210,7 +251,11 @@ contract OrganizationFactory {
         orgs.push(org);
     }
 
-    function getOrganizationAddresses() public view returns (Organization[] memory) {
+    function getOrganizationAddresses()
+        public
+        view
+        returns (Organization[] memory)
+    {
         return orgs;
     }
 
@@ -240,17 +285,25 @@ contract OrganizationFactory {
             );
     }
 
-    function getAllOrganizationsWithDetails() public view returns (OrgDetails[] memory) {
+    function getAllOrganizationsWithDetails()
+        public
+        view
+        returns (OrgDetails[] memory)
+    {
         OrgDetails[] memory organizations = new OrgDetails[](orgs.length);
-        for (uint i=0; i<orgs.length; i++) {
+        for (uint256 i = 0; i < orgs.length; i++) {
             organizations[i] = getOrganizationDetails(address(orgs[i]));
         }
         return organizations;
     }
 
-    function getSpeficiedOrganizationDetails(address[] memory orgAddrs) public view returns (OrgDetails[] memory) {
+    function getSpeficiedOrganizationDetails(address[] memory orgAddrs)
+        public
+        view
+        returns (OrgDetails[] memory)
+    {
         OrgDetails[] memory organizations = new OrgDetails[](orgAddrs.length);
-        for (uint i=0; i<orgs.length; i++) {
+        for (uint256 i = 0; i < orgs.length; i++) {
             organizations[i] = getOrganizationDetails(orgAddrs[i]);
         }
         return organizations;
