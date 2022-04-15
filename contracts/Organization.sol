@@ -4,10 +4,10 @@ pragma experimental ABIEncoderV2;
 
 interface IOGovernment {
     function registerOrganization() external;
-
     function checkUserRegistration(address user) external view;
-
     function vaccinate( address to, address vaccine_address, string memory batch_id) external;
+    function approveHealthPerson(address person) external;
+    function disapproveHealthPerson(address person) external; 
 }
 
 interface IOVaccine {
@@ -120,6 +120,7 @@ contract Organization {
     function approveHealthPerson(address person) public onlySuperAdmin {
         healthPersons.push(person);
         healthPersonApprovalStatus[person] = true;
+        gov.approveHealthPerson(person);
     }
 
     function disapproveHealthPerson(address person) public onlySuperAdmin{

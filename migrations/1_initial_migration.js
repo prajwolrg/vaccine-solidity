@@ -184,7 +184,6 @@ module.exports = async function (deployer, network, accounts) {
 
     await deployer.deploy(Government, 'Nepal', 'NP', 'np_ipfs_hash', VaccineFactory.address, OrganizationFactory.address);
     const govt = await Government.deployed();
-    console.log(`Government contract deployed: ${Government.address}`)
 
     for (let i = 0; i < organizations.length; i++) {
         console.log(`Adding organization ${organizations[i].name}: ${accounts[1 + i]}`)
@@ -200,14 +199,8 @@ module.exports = async function (deployer, network, accounts) {
     }
 
     const orgAddresses = await orgFactory.getOrganizationAddresses()
-    console.log(orgAddresses)
-
-    tx_result = await orgFactory.getOrganizationDetails(orgAddresses[0])
-    console.log(tx_result)
-
-    tx_result = await orgFactory.getAllOrganizationsWithDetails()
-    console.log(tx_result)
-
+    const org = await Organization.at(orgAddresses[0])
+    await govt.approveOrganization(orgAddresses[0])
 
     for (let i = 0; i < vaccines.length; i++) {
         console.log(`Adding vaccine ${vaccines[i].name}`)
@@ -219,28 +212,7 @@ module.exports = async function (deployer, network, accounts) {
             vaccines[i].ipfs_hash
         )
     }
-
-    for (i = 0; i < userAccounts.length; i++) {
-        console.log(`Adding user ${userAccounts[i].name}: ${accounts[6 + i]}`)
-        await govt.registerIndividual(
-            userAccounts[i]['yearOfBirth'],
-            userAccounts[i]['gender'],
-            ethers.utils.id(userAccounts[i]['name']),
-            userAccounts[i]['ipfs_hash'],
-            { from: accounts[6 + i] })
-    }
-
-
     const vaccineAddresses = await vFactory.getVaccineAddresses()
-    console.log(vaccineAddresses)
-
-    // tx_result = await vFactory.getVaccineDetails(vaccineAddresses[1])
-    // console.log(tx_result)
-
-    tx_result = await vFactory.getAllVaccinesWithDetails()
-    console.log(tx_result)
-
-
     const verocell = await Vaccine.at(vaccineAddresses[1])
     const currentTime = Date.now();
     const defrostDate = Math.floor((currentTime - (1 * 86400)) / 1000)
@@ -253,20 +225,21 @@ module.exports = async function (deployer, network, accounts) {
     await verocell.transfer(orgAddresses[0], '101', 10);
     await verocell.transfer(orgAddresses[0], '102', 10);
 
-    const org = await Organization.at(orgAddresses[0])
-    console.log(`Individual registered.`)
-    await org.approveHealthPerson(accounts[9]);
-    console.log(`Individual approved as healthperson.`)
+    for (i = 0; i < userAccounts.length; i++) {
+        console.log(`Adding user ${userAccounts[i].name}: ${accounts[6 + i]}`)
+        await govt.registerIndividual(
+            userAccounts[i]['yearOfBirth'],
+            userAccounts[i]['gender'],
+            ethers.utils.id(userAccounts[i]['name']),
+            userAccounts[i]['ipfs_hash'],
+            { from: accounts[6 + i] })
+    }
+    await org.approveHealthPerson(accounts[9], {gasLimit: '0x27100', gasPrice: '0x09184e72a00'});
 
-    tx_result = await org.getApprovedHealthPersons()
-    console.log(tx_result)
-
-    tx_result = await govt.organizationApprovalStatus(orgAddresses[0])
-    console.log(tx_result)
-    await govt.approveOrganization(orgAddresses[0])
-    tx_result = await govt.organizationApprovalStatus(orgAddresses[0])
-    console.log(tx_result)
     await org.vaccinate(accounts[8], vaccineAddresses[1], '101', { from: accounts[9] });
+
+    tx_result = await govt.getUser(accounts[8])
+    console.log(tx_result)
 
     if (network == 'private') {
         console.log('Adding data to contractAddresses')
@@ -276,8 +249,6 @@ module.exports = async function (deployer, network, accounts) {
             'government': Government.address
         })
     }
-
-
 };
 
 const addContractAddresses = async (contracts) => {

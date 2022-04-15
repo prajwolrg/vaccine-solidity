@@ -38,6 +38,8 @@ interface IGVaccine {
     function getVaccineSchedule() external view returns (uint256[] memory);
 
     function getVaccineScheduleLength() external view returns (uint256);
+
+    function name() external view returns (string memory);
 }
 
 interface IGOrganizationFactory {
@@ -74,17 +76,14 @@ contract Government {
         UNSPECIFIED
     }
 
-    enum VaccineStatus {
-        UNVACCINATED,
-        PARTIALLY_VACCINATED,
-        FULLY_VACCINATED
-    }
-
     struct Vaccine {
         address vaccine_address;
-        // string vaccine_name;
+        string vaccine_name;
         string batch;
         uint256 datetime;
+        address org;
+        string org_name;
+        address hp;
     }
 
     struct User {
@@ -94,6 +93,7 @@ contract Government {
         string imagehash;
         Vaccine[] vaccines;
         bool registered;
+        address org;
     }
     mapping(address => User) public users;
 
@@ -187,14 +187,32 @@ contract Government {
         // emit OrganizationApproval(org_address, org.name(), org.symbol());
     }
 
+    function approveHealthPerson(address person) public onlyApprovedOrganization {
+        checkUserRegistration(person);
+        address prevOrg = users[person].org;
+        require(prevOrg == address(0), 'Healthperson already approved by different org.');
+        require(prevOrg != msg.sender, 'Healthperson already approved.');
+        users[person].org = msg.sender;
+    }
+
+    function disapproveHealthPerson(address person) public onlyApprovedOrganization {
+        checkUserRegistration(person);
+        users[person].org = address(0);
+    }
+
     function vaccinate(
         address to,
         address vaccine_address,
         string memory batch_id
     ) public onlyApprovedOrganization {
         checkUserRegistration(to);
+        IGVaccine vaccine = IGVaccine(vaccine_address);
+        string memory vaccine_name = vaccine.name();
+        IGOrganization org = IGOrganization(msg.sender);
+        string memory org_name = org.name();
+        address hp = tx.origin;
         users[to].vaccines.push(
-            Vaccine(vaccine_address, batch_id, block.timestamp)
+            Vaccine(vaccine_address, vaccine_name, batch_id, block.timestamp, msg.sender, org_name, hp)
         );
         // users[to].vaccine_address = vaccine_address;
         // users[to].batches.push(batch_id);
